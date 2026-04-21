@@ -1,0 +1,66 @@
+#include "Application.h"
+
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Event.hpp>
+
+namespace hollow {
+
+namespace {
+    // 60 Hz sim tick. Render runs every frame and is vsync-capped so motion
+    // stays smooth on high-refresh displays without the simulation drifting.
+    constexpr float kFixedDt = 1.f / 60.f;
+}
+
+Application::Application()
+    : m_window(sf::VideoMode(1280, 720), "The Hollow God")
+{
+    m_window.setVerticalSyncEnabled(true);
+}
+
+int Application::run()
+{
+    sf::Clock clock;
+    float accumulator = 0.f;
+
+    while (m_window.isOpen()) {
+        accumulator += clock.restart().asSeconds();
+
+        processEvents();
+
+        while (accumulator >= kFixedDt) {
+            update(kFixedDt);
+            accumulator -= kFixedDt;
+        }
+
+        render();
+    }
+
+    return 0;
+}
+
+void Application::processEvents()
+{
+    sf::Event event{};
+    while (m_window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            m_window.close();
+        }
+        if (event.type == sf::Event::KeyPressed &&
+            event.key.code == sf::Keyboard::Escape) {
+            m_window.close();
+        }
+    }
+}
+
+void Application::update(float /*dt*/)
+{
+    // Gameplay wiring lands in Phase 3.
+}
+
+void Application::render()
+{
+    m_window.clear(sf::Color(10, 8, 14));
+    m_window.display();
+}
+
+} // namespace hollow

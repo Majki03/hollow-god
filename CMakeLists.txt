@@ -24,6 +24,7 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(hollow_god
     src/main.cpp
+    src/Application.cpp
 )
 
 target_include_directories(hollow_god PRIVATE src)
