@@ -9,11 +9,30 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+include(FetchContent)
+
+# SFML 2.6 is the last stable line before 3.x. It's well-documented and
+# available on every platform we care about. Pinning the tag keeps builds
+# reproducible for anyone cloning the repo.
+FetchContent_Declare(SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG        2.6.1
+    GIT_SHALLOW    TRUE
+)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(SFML)
+
 add_executable(hollow_god
     src/main.cpp
 )
 
 target_include_directories(hollow_god PRIVATE src)
+target_link_libraries(hollow_god PRIVATE
+    sfml-graphics
+    sfml-window
+    sfml-system
+    sfml-audio
+)
 
 if(MSVC)
     target_compile_options(hollow_god PRIVATE /W4)
