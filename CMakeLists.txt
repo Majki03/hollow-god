@@ -26,6 +26,7 @@ add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
     src/scene/SceneStack.cpp
+    src/scene/TitleScene.cpp
 )
 
 target_include_directories(hollow_god PRIVATE src)

@@ -1,7 +1,11 @@
 #include "Application.h"
 
+#include "scene/TitleScene.h"
+
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
+
+#include <memory>
 
 namespace hollow {
 
@@ -15,6 +19,7 @@ Application::Application()
     : m_window(sf::VideoMode(1280, 720), "The Hollow God")
 {
     m_window.setVerticalSyncEnabled(true);
+    m_scenes.push(std::make_unique<TitleScene>());
 }
 
 int Application::run()
