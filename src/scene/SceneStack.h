@@ -14,6 +14,9 @@ class Scene;
 
 class SceneStack {
 public:
+    SceneStack();
+    ~SceneStack();
+
     void push(std::unique_ptr<Scene> scene);
     void pop();
 

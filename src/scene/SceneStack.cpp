@@ -4,6 +4,11 @@
 
 namespace hollow {
 
+// Ctor/dtor out-of-line so std::unique_ptr<Scene>'s deleter only needs the
+// complete Scene type here, not in every TU that includes SceneStack.h.
+SceneStack::SceneStack()  = default;
+SceneStack::~SceneStack() = default;
+
 void SceneStack::push(std::unique_ptr<Scene> scene)
 {
     scene->onEnter();
