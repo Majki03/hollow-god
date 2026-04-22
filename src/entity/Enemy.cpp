@@ -2,10 +2,12 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
+#include <cmath>
+
 namespace hollow {
 
 namespace {
-    const sf::Color kBaseFill = sf::Color(150, 40, 40);
+    const sf::Color kBaseFill  = sf::Color(150, 40, 40);
     const sf::Color kFlashFill = sf::Color(255, 230, 230);
 }
 
@@ -29,12 +31,25 @@ void Enemy::damage(int amount)
     }
 }
 
+void Enemy::applyImpulse(sf::Vector2f impulse)
+{
+    m_velocity += impulse;
+}
+
 void Enemy::update(float dt)
 {
     if (m_flashTimer > 0.f) {
         m_flashTimer -= dt;
         m_body.setFillColor(m_flashTimer > 0.f ? kFlashFill : kBaseFill);
     }
+
+    // Knockback: integrate velocity, then decay it toward zero with a
+    // half-life. Framerate-independent, always reaches "essentially zero"
+    // within a few tenths of a second.
+    m_position += m_velocity * dt;
+    m_velocity *= std::exp2(-dt / kKnockbackHalfLife);
+
+    m_body.setPosition(m_position);
 }
 
 void Enemy::render(sf::RenderTarget& target) const

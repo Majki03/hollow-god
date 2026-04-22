@@ -11,12 +11,14 @@
 #include <SFML/Window/Event.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 
 namespace hollow {
 
 namespace {
-    constexpr int kSwingDamage = 10;
+    constexpr int   kSwingDamage     = 10;
+    constexpr float kKnockbackImpulse = 420.f;
 }
 
 GameScene::GameScene(SceneContext& ctx)
@@ -73,6 +75,14 @@ void GameScene::resolveCombat()
         if (physics::circlesOverlap(center, radius, e->position(), e->radius())) {
             e->damage(kSwingDamage);
             e->setLastHitSwing(swing);
+
+            // Knock the enemy away from the swing centre.
+            sf::Vector2f dir = e->position() - center;
+            const float  d2  = dir.x * dir.x + dir.y * dir.y;
+            if (d2 > 0.f) {
+                dir *= 1.f / std::sqrt(d2);
+                e->applyImpulse(dir * kKnockbackImpulse);
+            }
         }
     }
 }

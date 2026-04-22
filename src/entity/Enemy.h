@@ -11,6 +11,7 @@ public:
     explicit Enemy(sf::Vector2f position);
 
     void  damage(int amount);
+    void  applyImpulse(sf::Vector2f impulse);
     int   hp() const     { return m_hp; }
     float radius() const { return kRadius; }
 
@@ -25,13 +26,15 @@ public:
 
 private:
     sf::RectangleShape m_body;
-    int                m_hp          = kMaxHp;
-    int                m_lastHitSwing = -1;
-    float              m_flashTimer  = 0.f;
+    sf::Vector2f       m_velocity{};
+    int                m_hp            = kMaxHp;
+    int                m_lastHitSwing  = -1;
+    float              m_flashTimer    = 0.f;
 
-    static constexpr int   kMaxHp         = 20;
-    static constexpr float kRadius        = 18.f;
-    static constexpr float kFlashDuration = 0.08f;
+    static constexpr int   kMaxHp             = 20;
+    static constexpr float kRadius            = 18.f;
+    static constexpr float kFlashDuration     = 0.08f;
+    static constexpr float kKnockbackHalfLife = 0.10f; // velocity halves every 100ms
 };
 
 } // namespace hollow
