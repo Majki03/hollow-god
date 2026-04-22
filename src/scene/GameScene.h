@@ -1,9 +1,11 @@
 #pragma once
 
-#include "entity/Player.h"
 #include "scene/Scene.h"
+#include "world/World.h"
 
 namespace hollow {
+
+class Player;
 
 class GameScene : public Scene {
 public:
@@ -14,7 +16,8 @@ public:
     void render(sf::RenderTarget& target) override;
 
 private:
-    Player m_player;
+    World   m_world;
+    Player* m_player = nullptr; // non-owning; World owns the lifetime
 };
 
 } // namespace hollow

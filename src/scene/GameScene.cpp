@@ -1,18 +1,24 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
+#include "entity/Player.h"
 #include "input/ActionMap.h"
 #include "scene/SceneStack.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include <memory>
+
 namespace hollow {
 
 GameScene::GameScene(SceneContext& ctx)
     : Scene(ctx)
-    , m_player(sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions)
 {
+    auto player = std::make_unique<Player>(
+        sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions);
+    m_player = player.get();
+    m_world.add(std::move(player));
 }
 
 void GameScene::handleEvent(const sf::Event& /*event*/)
@@ -26,12 +32,13 @@ void GameScene::update(float dt)
         return;
     }
 
-    m_player.update(dt);
+    m_world.update(dt);
+    m_world.pruneDead();
 }
 
 void GameScene::render(sf::RenderTarget& target)
 {
-    m_player.render(target);
+    m_world.render(target);
 }
 
 } // namespace hollow
