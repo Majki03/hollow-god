@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <random>
 
 namespace hollow {
 
@@ -23,13 +24,14 @@ namespace {
 
 GameScene::GameScene(SceneContext& ctx)
     : Scene(ctx)
+    , m_rng(std::random_device{}())
 {
     auto player = std::make_unique<Player>(
         sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions);
     m_player = player.get();
     m_world.add(std::move(player));
 
-    spawnEnemy(sf::Vector2f(880.f, 300.f));
+    spawnWave();
 }
 
 void GameScene::spawnEnemy(sf::Vector2f position)
@@ -37,6 +39,30 @@ void GameScene::spawnEnemy(sf::Vector2f position)
     auto e = std::make_unique<Enemy>(position);
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
+}
+
+void GameScene::spawnWave()
+{
+    ++m_wave;
+    // Each wave adds one extra enemy, capped so early rooms stay manageable.
+    const int count = std::min(m_wave, 5);
+
+    std::uniform_real_distribution<float> rX(120.f, 1160.f);
+    std::uniform_real_distribution<float> rY(120.f,  600.f);
+
+    const sf::Vector2f playerPos = m_player->position();
+    constexpr float    kMinDist  = 220.f;
+
+    for (int i = 0; i < count; ++i) {
+        // Rejection-sample until we're far enough from the player.
+        sf::Vector2f pos;
+        for (int attempt = 0; attempt < 20; ++attempt) {
+            pos = { rX(m_rng), rY(m_rng) };
+            const sf::Vector2f d = pos - playerPos;
+            if (d.x * d.x + d.y * d.y >= kMinDist * kMinDist) break;
+        }
+        spawnEnemy(pos);
+    }
 }
 
 void GameScene::handleEvent(const sf::Event& /*event*/)
@@ -56,6 +82,10 @@ void GameScene::update(float dt)
     // Drop dangling enemy refs BEFORE World frees the memory they point to.
     std::erase_if(m_enemies, [](const Enemy* e) { return !e->alive(); });
     m_world.pruneDead();
+
+    if (m_enemies.empty()) {
+        spawnWave();
+    }
 }
 
 void GameScene::resolveCombat()
