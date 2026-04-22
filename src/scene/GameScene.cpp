@@ -1,6 +1,7 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
+#include "entity/Enemy.h"
 #include "entity/Player.h"
 #include "input/ActionMap.h"
 #include "scene/SceneStack.h"
@@ -19,6 +20,9 @@ GameScene::GameScene(SceneContext& ctx)
         sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions);
     m_player = player.get();
     m_world.add(std::move(player));
+
+    // One dummy enemy to have something to hit once combat lands.
+    m_world.add(std::make_unique<Enemy>(sf::Vector2f(880.f, 300.f)));
 }
 
 void GameScene::handleEvent(const sf::Event& /*event*/)
