@@ -17,6 +17,7 @@ public:
 
 private:
     sf::CircleShape  m_body;
+    sf::Vector2f     m_velocity{};
     const ActionMap& m_actions;
 };
 

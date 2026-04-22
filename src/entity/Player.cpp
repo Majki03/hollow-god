@@ -9,8 +9,10 @@
 namespace hollow {
 
 namespace {
-    constexpr float kSpeed  = 260.f; // px/s
-    constexpr float kRadius = 14.f;
+    constexpr float kMaxSpeed = 260.f; // px/s cap
+    constexpr float kAccel    = 1700.f; // how fast the Shard reaches top speed
+    constexpr float kDrag     = 1300.f; // how fast momentum bleeds when idle
+    constexpr float kRadius   = 14.f;
 }
 
 Player::Player(sf::Vector2f startPosition, const ActionMap& actions)
@@ -27,21 +29,36 @@ Player::Player(sf::Vector2f startPosition, const ActionMap& actions)
 
 void Player::update(float dt)
 {
-    sf::Vector2f dir{};
-    if (m_actions.isDown(Action::MoveUp))    dir.y -= 1.f;
-    if (m_actions.isDown(Action::MoveDown))  dir.y += 1.f;
-    if (m_actions.isDown(Action::MoveLeft))  dir.x -= 1.f;
-    if (m_actions.isDown(Action::MoveRight)) dir.x += 1.f;
+    sf::Vector2f wish{};
+    if (m_actions.isDown(Action::MoveUp))    wish.y -= 1.f;
+    if (m_actions.isDown(Action::MoveDown))  wish.y += 1.f;
+    if (m_actions.isDown(Action::MoveLeft))  wish.x -= 1.f;
+    if (m_actions.isDown(Action::MoveRight)) wish.x += 1.f;
 
     // Normalize so diagonal movement isn't ~41% faster than cardinal.
-    const float len2 = dir.x * dir.x + dir.y * dir.y;
-    if (len2 > 0.f) {
-        const float inv = 1.f / std::sqrt(len2);
-        dir.x *= inv;
-        dir.y *= inv;
+    const float wishLen2 = wish.x * wish.x + wish.y * wish.y;
+    if (wishLen2 > 0.f) {
+        const float inv = 1.f / std::sqrt(wishLen2);
+        wish.x *= inv;
+        wish.y *= inv;
     }
 
-    m_position += dir * (kSpeed * dt);
+    // Seek toward desired velocity. Accel when there's input, drag when not —
+    // gives the Shard weight without feeling sluggish.
+    const sf::Vector2f desired = wish * kMaxSpeed;
+    const sf::Vector2f delta   = desired - m_velocity;
+    const float        step    = (wishLen2 > 0.f ? kAccel : kDrag) * dt;
+    const float        dMag2   = delta.x * delta.x + delta.y * delta.y;
+
+    if (dMag2 > step * step) {
+        const float scale = step / std::sqrt(dMag2);
+        m_velocity.x += delta.x * scale;
+        m_velocity.y += delta.y * scale;
+    } else {
+        m_velocity = desired;
+    }
+
+    m_position += m_velocity * dt;
     m_body.setPosition(m_position);
 }
 
