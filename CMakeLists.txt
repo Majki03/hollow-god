@@ -31,6 +31,13 @@ add_executable(hollow_god
 )
 
 target_include_directories(hollow_god PRIVATE src)
+
+# SFML 2.6 headers trip -Wdeprecated-declarations on newer libc++
+# (sf::String instantiates basic_string<uint32_t>). Consuming them as SYSTEM
+# keeps our own warnings strict without drowning in upstream noise.
+target_include_directories(hollow_god SYSTEM BEFORE PRIVATE
+    ${sfml_SOURCE_DIR}/include)
+
 target_link_libraries(hollow_god PRIVATE
     sfml-graphics
     sfml-window
