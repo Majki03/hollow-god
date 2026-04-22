@@ -45,6 +45,8 @@ int Application::run()
 
 void Application::processEvents()
 {
+    m_input.beginFrame();
+
     sf::Event event{};
     while (m_window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -55,6 +57,7 @@ void Application::processEvents()
             m_window.close();
         }
 
+        m_input.onEvent(event);
         m_scenes.handleEvent(event);
     }
 }

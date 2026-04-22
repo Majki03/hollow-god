@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input/InputState.h"
 #include "scene/SceneStack.h"
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -18,6 +19,7 @@ private:
     void render();
 
     sf::RenderWindow m_window;
+    InputState       m_input;
     SceneStack       m_scenes;
 };
 
