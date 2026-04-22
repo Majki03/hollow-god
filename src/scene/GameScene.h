@@ -1,8 +1,7 @@
 #pragma once
 
+#include "entity/Player.h"
 #include "scene/Scene.h"
-
-#include <SFML/Graphics/CircleShape.hpp>
 
 namespace hollow {
 
@@ -15,9 +14,7 @@ public:
     void render(sf::RenderTarget& target) override;
 
 private:
-    // Temporary stand-in for the real player. Phase 3 replaces this with a
-    // proper Player entity (sprite, velocity, collider, attacks).
-    sf::CircleShape m_playerPlaceholder;
+    Player m_player;
 };
 
 } // namespace hollow
