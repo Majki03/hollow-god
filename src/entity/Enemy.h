@@ -14,15 +14,24 @@ public:
     int   hp() const     { return m_hp; }
     float radius() const { return kRadius; }
 
+    // Swing-id book-keeping so the same swing can't hit the same enemy twice.
+    // -1 means "never hit". Owned by the enemy, not by the swinger, so dead
+    // enemies don't leave dangling references in the player's state.
+    int  lastHitSwing() const           { return m_lastHitSwing; }
+    void setLastHitSwing(int swingId)   { m_lastHitSwing = swingId; }
+
     void update(float dt) override;
     void render(sf::RenderTarget& target) const override;
 
 private:
     sf::RectangleShape m_body;
-    int                m_hp = kMaxHp;
+    int                m_hp          = kMaxHp;
+    int                m_lastHitSwing = -1;
+    float              m_flashTimer  = 0.f;
 
-    static constexpr int   kMaxHp  = 20;
-    static constexpr float kRadius = 18.f; // circle approx for collision
+    static constexpr int   kMaxHp         = 20;
+    static constexpr float kRadius        = 18.f;
+    static constexpr float kFlashDuration = 0.08f;
 };
 
 } // namespace hollow

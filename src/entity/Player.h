@@ -23,6 +23,10 @@ public:
     sf::Vector2f hitboxPosition() const;
     float        hitboxRadius() const;
 
+    // Monotonically-increasing ID for each swing. Victims record which swing
+    // hit them so the hitbox can't double-tap the same target in one swing.
+    int swingId() const { return m_swingId; }
+
     void update(float dt) override;
     void render(sf::RenderTarget& target) const override;
 
@@ -37,6 +41,7 @@ private:
     float        m_aimAngle    = 0.f;
     AttackState  m_attackState = AttackState::Idle;
     float        m_attackTimer = 0.f;
+    int          m_swingId     = 0;
 
     const InputState& m_input;
     const ActionMap&  m_actions;

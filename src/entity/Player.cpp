@@ -109,6 +109,7 @@ void Player::update(float dt)
         m_actions.justPressed(Action::Attack)) {
         m_attackState = AttackState::Swinging;
         m_attackTimer = 0.f;
+        ++m_swingId;
     }
 
     if (m_attackState == AttackState::Swinging) {

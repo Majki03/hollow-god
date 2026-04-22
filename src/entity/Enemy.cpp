@@ -4,13 +4,18 @@
 
 namespace hollow {
 
+namespace {
+    const sf::Color kBaseFill = sf::Color(150, 40, 40);
+    const sf::Color kFlashFill = sf::Color(255, 230, 230);
+}
+
 Enemy::Enemy(sf::Vector2f position)
     : Entity(position)
     , m_body({ 2.f * kRadius, 2.f * kRadius })
 {
     m_body.setOrigin(kRadius, kRadius);
     m_body.setPosition(position);
-    m_body.setFillColor(sf::Color(150, 40, 40));
+    m_body.setFillColor(kBaseFill);
     m_body.setOutlineColor(sf::Color(50, 10, 10));
     m_body.setOutlineThickness(2.f);
 }
@@ -18,14 +23,18 @@ Enemy::Enemy(sf::Vector2f position)
 void Enemy::damage(int amount)
 {
     m_hp -= amount;
+    m_flashTimer = kFlashDuration;
     if (m_hp <= 0) {
         kill();
     }
 }
 
-void Enemy::update(float /*dt*/)
+void Enemy::update(float dt)
 {
-    // Stationary dummy for now — real AI lands in Phase 5.
+    if (m_flashTimer > 0.f) {
+        m_flashTimer -= dt;
+        m_body.setFillColor(m_flashTimer > 0.f ? kFlashFill : kBaseFill);
+    }
 }
 
 void Enemy::render(sf::RenderTarget& target) const
