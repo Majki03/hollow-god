@@ -11,16 +11,26 @@
 namespace hollow {
 
 namespace {
-    constexpr float kMaxSpeed = 260.f; // px/s cap
-    constexpr float kAccel    = 1700.f; // how fast the Shard reaches top speed
-    constexpr float kDrag     = 1300.f; // how fast momentum bleeds when idle
+    constexpr float kMaxSpeed = 260.f;
+    constexpr float kAccel    = 1700.f;
+    constexpr float kDrag     = 1300.f;
     constexpr float kRadius   = 14.f;
+
+    // Swing timing — tuned for a snappy Hades-like feel, not a slow souls-like.
+    constexpr float kSwingDuration = 0.30f;
+    constexpr float kHitboxStart   = 0.05f; // short windup
+    constexpr float kHitboxEnd     = 0.20f; // then recovery until duration
+    constexpr float kSwingReach    = 40.f;
+    constexpr float kSwingRadius   = 34.f;
+
+    constexpr float kRad2Deg = 180.f / std::numbers::pi_v<float>;
 }
 
 Player::Player(sf::Vector2f startPosition, const InputState& input, const ActionMap& actions)
     : Entity(startPosition)
     , m_body(kRadius)
     , m_aimIndicator({ 22.f, 3.f })
+    , m_swingVisual({ 64.f, 10.f })
     , m_input(input)
     , m_actions(actions)
 {
@@ -30,9 +40,31 @@ Player::Player(sf::Vector2f startPosition, const InputState& input, const Action
     m_body.setOutlineThickness(2.f);
     m_body.setPosition(m_position);
 
-    // Origin at the left-center of the bar so it pivots from the Shard's core.
     m_aimIndicator.setOrigin(0.f, 1.5f);
     m_aimIndicator.setFillColor(sf::Color(200, 170, 80));
+
+    m_swingVisual.setOrigin(32.f, 5.f);
+    m_swingVisual.setFillColor(sf::Color(240, 200, 120, 200));
+}
+
+bool Player::hitboxActive() const
+{
+    return m_attackState == AttackState::Swinging
+        && m_attackTimer >= kHitboxStart
+        && m_attackTimer <= kHitboxEnd;
+}
+
+sf::Vector2f Player::hitboxPosition() const
+{
+    return m_position + sf::Vector2f{
+        std::cos(m_aimAngle) * kSwingReach,
+        std::sin(m_aimAngle) * kSwingReach,
+    };
+}
+
+float Player::hitboxRadius() const
+{
+    return kSwingRadius;
 }
 
 void Player::update(float dt)
@@ -43,7 +75,6 @@ void Player::update(float dt)
     if (m_actions.isDown(Action::MoveLeft))  wish.x -= 1.f;
     if (m_actions.isDown(Action::MoveRight)) wish.x += 1.f;
 
-    // Normalize so diagonal movement isn't ~41% faster than cardinal.
     const float wishLen2 = wish.x * wish.x + wish.y * wish.y;
     if (wishLen2 > 0.f) {
         const float inv = 1.f / std::sqrt(wishLen2);
@@ -51,8 +82,6 @@ void Player::update(float dt)
         wish.y *= inv;
     }
 
-    // Seek toward desired velocity. Accel when there's input, drag when not —
-    // gives the Shard weight without feeling sluggish.
     const sf::Vector2f desired = wish * kMaxSpeed;
     const sf::Vector2f delta   = desired - m_velocity;
     const float        step    = (wishLen2 > 0.f ? kAccel : kDrag) * dt;
@@ -69,18 +98,38 @@ void Player::update(float dt)
     m_position += m_velocity * dt;
     m_body.setPosition(m_position);
 
-    // Aim toward the cursor. No camera yet, so screen-space == world-space.
     const auto mouse = m_input.mousePosition();
     m_aimAngle = std::atan2(mouse.y - m_position.y, mouse.x - m_position.x);
 
     m_aimIndicator.setPosition(m_position);
-    m_aimIndicator.setRotation(m_aimAngle * 180.f / std::numbers::pi_v<float>);
+    m_aimIndicator.setRotation(m_aimAngle * kRad2Deg);
+
+    // Attack state machine. Swing locks out further swings until it finishes.
+    if (m_attackState == AttackState::Idle &&
+        m_actions.justPressed(Action::Attack)) {
+        m_attackState = AttackState::Swinging;
+        m_attackTimer = 0.f;
+    }
+
+    if (m_attackState == AttackState::Swinging) {
+        m_attackTimer += dt;
+        m_swingVisual.setPosition(hitboxPosition());
+        m_swingVisual.setRotation(m_aimAngle * kRad2Deg);
+
+        if (m_attackTimer >= kSwingDuration) {
+            m_attackState = AttackState::Idle;
+            m_attackTimer = 0.f;
+        }
+    }
 }
 
 void Player::render(sf::RenderTarget& target) const
 {
     target.draw(m_aimIndicator);
     target.draw(m_body);
+    if (hitboxActive()) {
+        target.draw(m_swingVisual);
+    }
 }
 
 } // namespace hollow
