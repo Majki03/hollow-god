@@ -8,8 +8,9 @@
 
 namespace hollow {
 
-TitleScene::TitleScene()
-    : m_banner(sf::Vector2f(480.f, 4.f))
+TitleScene::TitleScene(SceneContext& ctx)
+    : Scene(ctx)
+    , m_banner(sf::Vector2f(480.f, 4.f))
 {
     m_banner.setOrigin(240.f, 2.f);
     m_banner.setPosition(640.f, 360.f);

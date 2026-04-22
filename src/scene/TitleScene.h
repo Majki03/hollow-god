@@ -8,7 +8,7 @@ namespace hollow {
 
 class TitleScene : public Scene {
 public:
-    TitleScene();
+    explicit TitleScene(SceneContext& ctx);
 
     void handleEvent(const sf::Event& event) override;
     void update(float dt) override;
