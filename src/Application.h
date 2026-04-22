@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene/SceneStack.h"
+
 #include <SFML/Graphics/RenderWindow.hpp>
 
 namespace hollow {
@@ -16,6 +18,7 @@ private:
     void render();
 
     sf::RenderWindow m_window;
+    SceneStack       m_scenes;
 };
 
 } // namespace hollow

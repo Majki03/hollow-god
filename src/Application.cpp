@@ -49,17 +49,20 @@ void Application::processEvents()
             event.key.code == sf::Keyboard::Escape) {
             m_window.close();
         }
+
+        m_scenes.handleEvent(event);
     }
 }
 
-void Application::update(float /*dt*/)
+void Application::update(float dt)
 {
-    // Gameplay wiring lands in Phase 3.
+    m_scenes.update(dt);
 }
 
 void Application::render()
 {
     m_window.clear(sf::Color(10, 8, 14));
+    m_scenes.render(m_window);
     m_window.display();
 }
 
