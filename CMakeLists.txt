@@ -27,6 +27,7 @@ add_executable(hollow_god
     src/Application.cpp
     src/input/ActionMap.cpp
     src/input/InputState.cpp
+    src/resources/TextureCache.cpp
     src/scene/SceneStack.cpp
     src/scene/TitleScene.cpp
 )
