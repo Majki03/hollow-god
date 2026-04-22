@@ -1,10 +1,17 @@
 #include "scene/TitleScene.h"
 
+#include "core/SceneContext.h"
+#include "input/ActionMap.h"
+#include "scene/GameScene.h"
+#include "scene/SceneStack.h"
+
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
 #include <cmath>
 #include <cstdint>
+#include <memory>
 
 namespace hollow {
 
@@ -31,6 +38,13 @@ void TitleScene::update(float dt)
     sf::Color c = m_banner.getFillColor();
     c.a = static_cast<std::uint8_t>(alpha * 255.f);
     m_banner.setFillColor(c);
+
+    if (m_ctx.actions.justPressed(Action::Confirm)) {
+        m_ctx.scenes.push(std::make_unique<GameScene>(m_ctx));
+    }
+    if (m_ctx.actions.justPressed(Action::Back)) {
+        m_ctx.window.close();
+    }
 }
 
 void TitleScene::render(sf::RenderTarget& target)

@@ -54,10 +54,6 @@ void Application::processEvents()
         if (event.type == sf::Event::Closed) {
             m_window.close();
         }
-        if (event.type == sf::Event::KeyPressed &&
-            event.key.code == sf::Keyboard::Escape) {
-            m_window.close();
-        }
 
         m_input.onEvent(event);
         m_scenes.handleEvent(event);
