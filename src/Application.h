@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input/ActionMap.h"
 #include "input/InputState.h"
 #include "scene/SceneStack.h"
 
@@ -20,6 +21,7 @@ private:
 
     sf::RenderWindow m_window;
     InputState       m_input;
+    ActionMap        m_actions;
     SceneStack       m_scenes;
 };
 

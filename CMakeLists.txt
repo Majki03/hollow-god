@@ -25,6 +25,7 @@ FetchContent_MakeAvailable(SFML)
 add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
+    src/input/ActionMap.cpp
     src/input/InputState.cpp
     src/scene/SceneStack.cpp
     src/scene/TitleScene.cpp

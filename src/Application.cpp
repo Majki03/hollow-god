@@ -17,6 +17,7 @@ namespace {
 
 Application::Application()
     : m_window(sf::VideoMode(1280, 720), "The Hollow God")
+    , m_actions(m_input)
 {
     m_window.setVerticalSyncEnabled(true);
     m_scenes.push(std::make_unique<TitleScene>());
