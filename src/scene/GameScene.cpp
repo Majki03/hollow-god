@@ -11,7 +11,7 @@ namespace hollow {
 
 GameScene::GameScene(SceneContext& ctx)
     : Scene(ctx)
-    , m_player(sf::Vector2f(640.f, 360.f), ctx.actions)
+    , m_player(sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions)
 {
 }
 

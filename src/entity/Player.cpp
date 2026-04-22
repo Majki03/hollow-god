@@ -1,10 +1,12 @@
 #include "entity/Player.h"
 
 #include "input/ActionMap.h"
+#include "input/InputState.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
 #include <cmath>
+#include <numbers>
 
 namespace hollow {
 
@@ -15,9 +17,11 @@ namespace {
     constexpr float kRadius   = 14.f;
 }
 
-Player::Player(sf::Vector2f startPosition, const ActionMap& actions)
+Player::Player(sf::Vector2f startPosition, const InputState& input, const ActionMap& actions)
     : Entity(startPosition)
     , m_body(kRadius)
+    , m_aimIndicator({ 22.f, 3.f })
+    , m_input(input)
     , m_actions(actions)
 {
     m_body.setOrigin(kRadius, kRadius);
@@ -25,6 +29,10 @@ Player::Player(sf::Vector2f startPosition, const ActionMap& actions)
     m_body.setOutlineColor(sf::Color(70, 40, 100));
     m_body.setOutlineThickness(2.f);
     m_body.setPosition(m_position);
+
+    // Origin at the left-center of the bar so it pivots from the Shard's core.
+    m_aimIndicator.setOrigin(0.f, 1.5f);
+    m_aimIndicator.setFillColor(sf::Color(200, 170, 80));
 }
 
 void Player::update(float dt)
@@ -60,10 +68,18 @@ void Player::update(float dt)
 
     m_position += m_velocity * dt;
     m_body.setPosition(m_position);
+
+    // Aim toward the cursor. No camera yet, so screen-space == world-space.
+    const auto mouse = m_input.mousePosition();
+    m_aimAngle = std::atan2(mouse.y - m_position.y, mouse.x - m_position.x);
+
+    m_aimIndicator.setPosition(m_position);
+    m_aimIndicator.setRotation(m_aimAngle * 180.f / std::numbers::pi_v<float>);
 }
 
 void Player::render(sf::RenderTarget& target) const
 {
+    target.draw(m_aimIndicator);
     target.draw(m_body);
 }
 
