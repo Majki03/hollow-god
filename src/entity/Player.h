@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity/Entity.h"
+#include "entity/PlayerStats.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -27,16 +28,19 @@ public:
     // hit them so the hitbox can't double-tap the same target in one swing.
     int swingId() const { return m_swingId; }
 
+    // Damage the enemy deals to the player on body contact.
     static constexpr int kContactDamage = 10;
 
     int  hp()    const { return m_hp; }
-    int  maxHp() const { return kMaxHp; }
+    int  maxHp() const { return m_stats.maxHp; }
 
-    // Returns false while i-frames are active so contact damage can be gated.
+    const PlayerStats& stats()        const { return m_stats; }
+    PlayerStats&       mutableStats()       { return m_stats; }
+
+    // Returns false while i-frames are active (hit ignored).
     bool damage(int amount);
+    void healBy(int amount);
 
-    // Clamp the player inside [min, max] and zero any velocity component that
-    // pushed against a wall so movement doesn't accumulate into the boundary.
     void confine(sf::Vector2f min, sf::Vector2f max);
 
     void update(float dt) override;
@@ -45,6 +49,7 @@ public:
 private:
     enum class AttackState { Idle, Swinging };
 
+    PlayerStats        m_stats;
     sf::CircleShape    m_body;
     sf::RectangleShape m_aimIndicator;
     sf::RectangleShape m_swingVisual;
@@ -55,11 +60,8 @@ private:
     float        m_attackTimer = 0.f;
     int          m_swingId     = 0;
 
-    int   m_hp          = kMaxHp;
+    int   m_hp          = 0;   // set to m_stats.maxHp in ctor body
     float m_iframeTimer = 0.f;
-
-    static constexpr int   kMaxHp     = 100;
-    static constexpr float kIframeDur = 0.75f;
 
     const InputState& m_input;
     const ActionMap&  m_actions;

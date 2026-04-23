@@ -24,9 +24,7 @@
 namespace hollow {
 
 namespace {
-    constexpr int   kSwingDamage      = 10;
-    constexpr float kKnockbackImpulse = 420.f;
-    constexpr float kPlayerR          = 14.f;
+    constexpr float kPlayerR = 14.f;
 
     const sf::Vector2f kRoomOrigin = { 120.f, 80.f };
     const sf::Vector2f kRoomSize   = { 1040.f, 560.f };
@@ -160,14 +158,18 @@ void GameScene::resolveCombat()
     for (EnemyBase* e : m_enemies) {
         if (!e->alive() || e->lastHitSwing() == swing) continue;
         if (physics::circlesOverlap(center, radius, e->position(), e->radius())) {
-            e->damage(kSwingDamage);
+            e->damage(m_player->stats().swingDamage);
             e->setLastHitSwing(swing);
 
             sf::Vector2f dir = e->position() - center;
             const float  d2  = dir.x * dir.x + dir.y * dir.y;
             if (d2 > 0.f) {
                 dir *= 1.f / std::sqrt(d2);
-                e->applyImpulse(dir * kKnockbackImpulse);
+                e->applyImpulse(dir * m_player->stats().knockback);
+            }
+
+            if (!e->alive() && m_player->stats().onKillHeal > 0) {
+                m_player->healBy(m_player->stats().onKillHeal);
             }
         }
     }

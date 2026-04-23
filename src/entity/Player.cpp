@@ -5,21 +5,21 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 
 namespace hollow {
 
 namespace {
-    constexpr float kMaxSpeed = 260.f;
-    constexpr float kAccel    = 1700.f;
-    constexpr float kDrag     = 1300.f;
-    constexpr float kRadius   = 14.f;
+    // These are fixed movement constants — not moddable by boons.
+    constexpr float kAccel  = 1700.f;
+    constexpr float kDrag   = 1300.f;
+    constexpr float kRadius = 14.f;
 
-    // Swing timing — tuned for a snappy Hades-like feel, not a slow souls-like.
     constexpr float kSwingDuration = 0.30f;
-    constexpr float kHitboxStart   = 0.05f; // short windup
-    constexpr float kHitboxEnd     = 0.20f; // then recovery until duration
+    constexpr float kHitboxStart   = 0.05f;
+    constexpr float kHitboxEnd     = 0.20f;
     constexpr float kSwingReach    = 40.f;
     constexpr float kSwingRadius   = 34.f;
 
@@ -34,6 +34,7 @@ Player::Player(sf::Vector2f startPosition, const InputState& input, const Action
     , m_input(input)
     , m_actions(actions)
 {
+    m_hp = m_stats.maxHp;
     m_body.setOrigin(kRadius, kRadius);
     m_body.setFillColor(sf::Color(230, 228, 240));
     m_body.setOutlineColor(sf::Color(70, 40, 100));
@@ -62,16 +63,39 @@ sf::Vector2f Player::hitboxPosition() const
     };
 }
 
-float Player::hitboxRadius() const
+float Player::hitboxRadius() const { return kSwingRadius; }
+
+bool Player::damage(int amount)
 {
-    return kSwingRadius;
+    if (m_iframeTimer > 0.f) return false;
+    const int effective = std::max(1, amount - m_stats.dmgReduce);
+    m_hp -= effective;
+    m_iframeTimer = m_stats.iframeDur;
+    if (m_hp <= 0) {
+        m_hp = 0;
+        kill();
+    }
+    return true;
+}
+
+void Player::healBy(int amount)
+{
+    m_hp = std::min(m_hp + amount, m_stats.maxHp);
+}
+
+void Player::confine(sf::Vector2f mn, sf::Vector2f mx)
+{
+    if (m_position.x < mn.x) { m_position.x = mn.x; m_velocity.x = std::max(m_velocity.x, 0.f); }
+    if (m_position.x > mx.x) { m_position.x = mx.x; m_velocity.x = std::min(m_velocity.x, 0.f); }
+    if (m_position.y < mn.y) { m_position.y = mn.y; m_velocity.y = std::max(m_velocity.y, 0.f); }
+    if (m_position.y > mx.y) { m_position.y = mx.y; m_velocity.y = std::min(m_velocity.y, 0.f); }
+    m_body.setPosition(m_position);
 }
 
 void Player::update(float dt)
 {
     if (m_iframeTimer > 0.f) {
         m_iframeTimer -= dt;
-        // Blink every 100 ms so the player can see they're invincible.
         const bool visible = static_cast<int>(m_iframeTimer / 0.1f) % 2 == 0;
         m_body.setFillColor(visible ? sf::Color(230, 228, 240) : sf::Color(230, 228, 240, 80));
     }
@@ -89,7 +113,7 @@ void Player::update(float dt)
         wish.y *= inv;
     }
 
-    const sf::Vector2f desired = wish * kMaxSpeed;
+    const sf::Vector2f desired = wish * m_stats.moveSpeed;
     const sf::Vector2f delta   = desired - m_velocity;
     const float        step    = (wishLen2 > 0.f ? kAccel : kDrag) * dt;
     const float        dMag2   = delta.x * delta.x + delta.y * delta.y;
@@ -111,7 +135,6 @@ void Player::update(float dt)
     m_aimIndicator.setPosition(m_position);
     m_aimIndicator.setRotation(m_aimAngle * kRad2Deg);
 
-    // Attack state machine. Swing locks out further swings until it finishes.
     if (m_attackState == AttackState::Idle &&
         m_actions.justPressed(Action::Attack)) {
         m_attackState = AttackState::Swinging;
@@ -129,27 +152,6 @@ void Player::update(float dt)
             m_attackTimer = 0.f;
         }
     }
-}
-
-bool Player::damage(int amount)
-{
-    if (m_iframeTimer > 0.f) return false;
-    m_hp -= amount;
-    m_iframeTimer = kIframeDur;
-    if (m_hp <= 0) {
-        m_hp = 0;
-        kill();
-    }
-    return true;
-}
-
-void Player::confine(sf::Vector2f mn, sf::Vector2f mx)
-{
-    if (m_position.x < mn.x) { m_position.x = mn.x; m_velocity.x = std::max(m_velocity.x, 0.f); }
-    if (m_position.x > mx.x) { m_position.x = mx.x; m_velocity.x = std::min(m_velocity.x, 0.f); }
-    if (m_position.y < mn.y) { m_position.y = mn.y; m_velocity.y = std::max(m_velocity.y, 0.f); }
-    if (m_position.y > mx.y) { m_position.y = mx.y; m_velocity.y = std::min(m_velocity.y, 0.f); }
-    m_body.setPosition(m_position);
 }
 
 void Player::render(sf::RenderTarget& target) const
