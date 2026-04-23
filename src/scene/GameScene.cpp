@@ -94,6 +94,7 @@ void GameScene::update(float dt)
     for (EnemyBase* e : m_enemies) {
         if (e->alive()) e->seek(playerPos);
     }
+    separateEnemies();
 
     m_world.update(dt);
 
@@ -147,6 +148,33 @@ void GameScene::resolveCombat()
             if (d2 > 0.f) {
                 dir *= 1.f / std::sqrt(d2);
                 e->applyImpulse(dir * kKnockbackImpulse);
+            }
+        }
+    }
+}
+
+void GameScene::separateEnemies()
+{
+    // Push pairs of enemies apart when they overlap. Applied as a direct
+    // impulse on m_knockback so the existing decay smooths it out naturally.
+    constexpr float kPushStrength = 300.f;
+
+    for (std::size_t i = 0; i < m_enemies.size(); ++i) {
+        for (std::size_t j = i + 1; j < m_enemies.size(); ++j) {
+            EnemyBase* a = m_enemies[i];
+            EnemyBase* b = m_enemies[j];
+            if (!a->alive() || !b->alive()) continue;
+
+            sf::Vector2f delta = a->position() - b->position();
+            const float  d2    = delta.x * delta.x + delta.y * delta.y;
+            const float  minD  = a->radius() + b->radius();
+
+            if (d2 < minD * minD && d2 > 0.f) {
+                const float  d   = std::sqrt(d2);
+                const float  pen = (minD - d) / minD; // 0→touching, 1→fully overlapping
+                sf::Vector2f push = (delta / d) * (pen * kPushStrength);
+                a->applyImpulse( push);
+                b->applyImpulse(-push);
             }
         }
     }

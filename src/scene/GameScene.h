@@ -29,6 +29,7 @@ private:
     void spawnWave();
     void resolveCombat();
     void resolveEnemyContact();
+    void separateEnemies();
 
     Room                    m_room;
     World                   m_world;
