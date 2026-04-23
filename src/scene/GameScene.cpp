@@ -1,6 +1,7 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
+#include "entity/Charger.h"
 #include "entity/EnemyBase.h"
 #include "entity/Grunt.h"
 #include "entity/Player.h"
@@ -51,8 +52,9 @@ void GameScene::spawnEnemy(sf::Vector2f position)
     m_world.add(std::move(e));
 }
 
-// Explicit instantiation so the template body doesn't need to live in the header.
+// Explicit instantiations so the template body doesn't need to live in the header.
 template void GameScene::spawnEnemy<Grunt>(sf::Vector2f);
+template void GameScene::spawnEnemy<Charger>(sf::Vector2f);
 
 void GameScene::spawnWave()
 {
