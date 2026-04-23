@@ -26,6 +26,7 @@ private:
     void spawnEnemy(sf::Vector2f position);
     void spawnWave();
     void resolveCombat();
+    void resolveEnemyContact();
 
     Room                m_room;
     World               m_world;

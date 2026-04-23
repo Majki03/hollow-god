@@ -27,6 +27,14 @@ public:
     // hit them so the hitbox can't double-tap the same target in one swing.
     int swingId() const { return m_swingId; }
 
+    static constexpr int kContactDamage = 10;
+
+    int  hp()    const { return m_hp; }
+    int  maxHp() const { return kMaxHp; }
+
+    // Returns false while i-frames are active so contact damage can be gated.
+    bool damage(int amount);
+
     // Clamp the player inside [min, max] and zero any velocity component that
     // pushed against a wall so movement doesn't accumulate into the boundary.
     void confine(sf::Vector2f min, sf::Vector2f max);
@@ -46,6 +54,12 @@ private:
     AttackState  m_attackState = AttackState::Idle;
     float        m_attackTimer = 0.f;
     int          m_swingId     = 0;
+
+    int   m_hp          = kMaxHp;
+    float m_iframeTimer = 0.f;
+
+    static constexpr int   kMaxHp     = 100;
+    static constexpr float kIframeDur = 0.75f;
 
     const InputState& m_input;
     const ActionMap&  m_actions;

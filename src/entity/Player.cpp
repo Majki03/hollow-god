@@ -69,6 +69,13 @@ float Player::hitboxRadius() const
 
 void Player::update(float dt)
 {
+    if (m_iframeTimer > 0.f) {
+        m_iframeTimer -= dt;
+        // Blink every 100 ms so the player can see they're invincible.
+        const bool visible = static_cast<int>(m_iframeTimer / 0.1f) % 2 == 0;
+        m_body.setFillColor(visible ? sf::Color(230, 228, 240) : sf::Color(230, 228, 240, 80));
+    }
+
     sf::Vector2f wish{};
     if (m_actions.isDown(Action::MoveUp))    wish.y -= 1.f;
     if (m_actions.isDown(Action::MoveDown))  wish.y += 1.f;
@@ -122,6 +129,18 @@ void Player::update(float dt)
             m_attackTimer = 0.f;
         }
     }
+}
+
+bool Player::damage(int amount)
+{
+    if (m_iframeTimer > 0.f) return false;
+    m_hp -= amount;
+    m_iframeTimer = kIframeDur;
+    if (m_hp <= 0) {
+        m_hp = 0;
+        kill();
+    }
+    return true;
 }
 
 void Player::confine(sf::Vector2f mn, sf::Vector2f mx)

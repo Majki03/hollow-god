@@ -107,6 +107,12 @@ void GameScene::update(float dt)
     }
 
     resolveCombat();
+    resolveEnemyContact();
+
+    if (!m_player->alive()) {
+        m_ctx.scenes.pop();   // TODO: push DeathScene instead
+        return;
+    }
 
     // Drop dangling enemy refs BEFORE World frees the memory they point to.
     std::erase_if(m_enemies, [](const Enemy* e) { return !e->alive(); });
@@ -142,6 +148,19 @@ void GameScene::resolveCombat()
                 dir *= 1.f / std::sqrt(d2);
                 e->applyImpulse(dir * kKnockbackImpulse);
             }
+        }
+    }
+}
+
+void GameScene::resolveEnemyContact()
+{
+    constexpr float kPlayerR = 14.f;
+
+    for (Enemy* e : m_enemies) {
+        if (!e->alive()) continue;
+        if (physics::circlesOverlap(m_player->position(), kPlayerR,
+                                    e->position(),         e->radius())) {
+            m_player->damage(Player::kContactDamage);
         }
     }
 }
