@@ -125,6 +125,12 @@ void GameScene::update(float dt)
         return;
     }
 
+    // Hit-stop: briefly freeze the simulation on a kill for impact weight.
+    if (m_hitStop > 0.f) {
+        m_hitStop -= dt;
+        return;
+    }
+
     const sf::Vector2f playerPos = m_player->position();
     for (EnemyBase* e : m_enemies) {
         if (e->alive()) e->seek(playerPos);
@@ -239,6 +245,7 @@ void GameScene::resolveCombat()
 
             if (!e->alive()) {
                 ++m_kills;
+                m_hitStop = std::max(m_hitStop, 0.055f);
                 emitDeathParticles(e->position(), e->normalColor());
                 if (m_player->stats().onKillHeal > 0)
                     m_player->healBy(m_player->stats().onKillHeal);

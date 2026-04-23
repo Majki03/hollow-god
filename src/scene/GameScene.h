@@ -54,6 +54,7 @@ private:
     int                     m_kills       = 0;
     bool                    m_boonPending = false;
     float                   m_shakeTrauma = 0.f;
+    float                   m_hitStop     = 0.f;   // remaining freeze time after a kill
     int                     m_prevHp      = 0;     // detect damage this frame for shake trigger
     std::mt19937            m_rng;
 };
