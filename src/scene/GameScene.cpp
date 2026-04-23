@@ -1,6 +1,7 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
+#include "entity/Brute.h"
 #include "entity/Charger.h"
 #include "entity/EnemyBase.h"
 #include "entity/Grunt.h"
@@ -55,30 +56,47 @@ void GameScene::spawnEnemy(sf::Vector2f position)
 // Explicit instantiations so the template body doesn't need to live in the header.
 template void GameScene::spawnEnemy<Grunt>(sf::Vector2f);
 template void GameScene::spawnEnemy<Charger>(sf::Vector2f);
+template void GameScene::spawnEnemy<Brute>(sf::Vector2f);
 
 void GameScene::spawnWave()
 {
     ++m_wave;
-    const int count = std::min(m_wave, 5);
 
-    constexpr float kEdge = 50.f;
+    // Wave composition: each entry is {grunts, chargers, brutes}.
+    // Waves beyond the table repeat the last row.
+    struct WaveLayout { int grunts; int chargers; int brutes; };
+    static constexpr WaveLayout kLayouts[] = {
+        { 1, 0, 0 }, // wave 1
+        { 1, 1, 0 }, // wave 2
+        { 2, 1, 0 }, // wave 3
+        { 2, 1, 1 }, // wave 4
+        { 2, 2, 1 }, // wave 5+
+    };
+    const auto& layout = kLayouts[std::min(m_wave - 1,
+        static_cast<int>(std::size(kLayouts)) - 1)];
+
+    constexpr float kEdge    = 55.f;
+    constexpr float kMinDist = 220.f;
     std::uniform_real_distribution<float> rX(
         m_room.topLeft().x + kEdge, m_room.topLeft().x + m_room.size().x - kEdge);
     std::uniform_real_distribution<float> rY(
         m_room.topLeft().y + kEdge, m_room.topLeft().y + m_room.size().y - kEdge);
 
     const sf::Vector2f playerPos = m_player->position();
-    constexpr float    kMinDist  = 220.f;
 
-    for (int i = 0; i < count; ++i) {
+    auto pickPos = [&]() {
         sf::Vector2f pos;
         for (int attempt = 0; attempt < 20; ++attempt) {
             pos = { rX(m_rng), rY(m_rng) };
             const sf::Vector2f d = pos - playerPos;
             if (d.x * d.x + d.y * d.y >= kMinDist * kMinDist) break;
         }
-        spawnEnemy<Grunt>(pos);
-    }
+        return pos;
+    };
+
+    for (int i = 0; i < layout.grunts;   ++i) spawnEnemy<Grunt>  (pickPos());
+    for (int i = 0; i < layout.chargers; ++i) spawnEnemy<Charger>(pickPos());
+    for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos());
 }
 
 void GameScene::handleEvent(const sf::Event& /*event*/)
