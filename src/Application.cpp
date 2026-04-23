@@ -18,13 +18,16 @@ namespace {
 Application::Application()
     : m_window(sf::VideoMode(1280, 720), "The Hollow God")
     , m_actions(m_input)
-    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts }
+    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts, "" }
 {
     m_window.setVerticalSyncEnabled(true);
 
     // Best-effort font load. Missing font means text is absent, not a crash.
-    // TODO: bundle a proper font asset and remove HG_DEV_FONT.
-    try { m_fonts.get(HG_DEV_FONT); } catch (...) {}
+    // TODO: bundle a proper font asset in assets/fonts/ and remove HG_DEV_FONT.
+    try {
+        m_fonts.get(HG_DEV_FONT);
+        m_ctx.fontKey = HG_DEV_FONT;
+    } catch (...) {}
 
     m_scenes.push(std::make_unique<TitleScene>(m_ctx));
 }

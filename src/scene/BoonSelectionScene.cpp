@@ -2,6 +2,7 @@
 
 #include "boon/BoonPool.h"
 #include "core/SceneContext.h"
+#include "core/TextUtil.h"
 #include "entity/Player.h"
 #include "input/ActionMap.h"
 #include "resources/ResourceCache.h"
@@ -40,8 +41,18 @@ BoonSelectionScene::BoonSelectionScene(SceneContext& ctx, Player& player)
     : Scene(ctx)
     , m_player(player)
     , m_overlay(sf::Vector2f(1280.f, 720.f))
+    , m_header(makeText(ctx, "CHOOSE A DIVINE ECHO", 28, sf::Color(200, 170, 80)))
+    , m_subheader(makeText(ctx, "Arrow keys to browse    Enter to accept", 13, sf::Color(100, 88, 68)))
 {
     m_overlay.setFillColor(sf::Color(0, 0, 0, 180));
+
+    const auto hb = m_header.getLocalBounds();
+    m_header.setOrigin(hb.left + hb.width * 0.5f, 0.f);
+    m_header.setPosition(640.f, 130.f);
+
+    const auto sb = m_subheader.getLocalBounds();
+    m_subheader.setOrigin(sb.left + sb.width * 0.5f, 0.f);
+    m_subheader.setPosition(640.f, 170.f);
 
     // Pick three distinct random boons.
     auto pool = BoonPool::all();
@@ -158,6 +169,8 @@ void BoonSelectionScene::applyBoon(const Boon& boon)
 void BoonSelectionScene::render(sf::RenderTarget& target)
 {
     target.draw(m_overlay);
+    target.draw(m_header);
+    target.draw(m_subheader);
 
     for (int i = 0; i < kCardCount; ++i) {
         Card& c = m_cards[i];

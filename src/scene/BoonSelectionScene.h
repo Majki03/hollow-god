@@ -35,6 +35,8 @@ private:
 
     // Visuals
     sf::RectangleShape m_overlay;
+    sf::Text           m_header;
+    sf::Text           m_subheader;
 
     struct Card {
         sf::RectangleShape bg;

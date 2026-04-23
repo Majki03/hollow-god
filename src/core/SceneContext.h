@@ -2,6 +2,8 @@
 
 #include "resources/ResourceCache.h"
 
+#include <string>
+
 namespace sf { class RenderWindow; }
 
 namespace hollow {
@@ -19,6 +21,9 @@ struct SceneContext {
     SceneStack&       scenes;
     TextureCache&     textures;
     FontCache&        fonts;
+    // Key into fonts cache. Empty string means no font was loaded; scenes must
+    // guard all sf::Text usage behind !fontKey.empty().
+    std::string fontKey;
 };
 
 } // namespace hollow
