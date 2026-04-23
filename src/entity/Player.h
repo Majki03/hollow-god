@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 
 namespace hollow {
 
@@ -52,7 +53,7 @@ private:
     PlayerStats        m_stats;
     sf::CircleShape    m_body;
     sf::RectangleShape m_aimIndicator;
-    sf::RectangleShape m_swingVisual;
+    sf::VertexArray    m_swingArc;   // ring-sector drawn during attack
 
     sf::Vector2f m_velocity{};
     float        m_aimAngle    = 0.f;
