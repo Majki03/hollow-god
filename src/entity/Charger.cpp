@@ -94,6 +94,7 @@ void Charger::seek(sf::Vector2f playerPos)
 void Charger::render(sf::RenderTarget& target) const
 {
     target.draw(m_body);
+    renderHpBar(target);
 }
 
 } // namespace hollow

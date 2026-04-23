@@ -1,5 +1,7 @@
 #include "entity/EnemyBase.h"
 
+#include <SFML/Graphics/RenderTarget.hpp>
+
 #include <algorithm>
 #include <cmath>
 
@@ -33,6 +35,30 @@ void EnemyBase::confine(sf::Vector2f mn, sf::Vector2f mx)
     if (m_position.y < mn.y) { m_position.y = mn.y; m_knockback.y = std::max(m_knockback.y, 0.f); }
     if (m_position.y > mx.y) { m_position.y = mx.y; m_knockback.y = std::min(m_knockback.y, 0.f); }
     syncShape();
+}
+
+void EnemyBase::renderHpBar(sf::RenderTarget& target) const
+{
+    // Skip if at full health — no need to clutter the screen.
+    if (m_hp >= m_maxHp) return;
+
+    constexpr float kBarW  = 36.f;
+    constexpr float kBarH  =  4.f;
+    constexpr float kYOff  =  6.f; // above the entity's top edge
+
+    const float ratio = static_cast<float>(m_hp) / static_cast<float>(m_maxHp);
+    const float y     = m_position.y - m_radius - kYOff - kBarH;
+    const float x     = m_position.x - kBarW * 0.5f;
+
+    sf::RectangleShape bg({ kBarW, kBarH });
+    bg.setPosition({ x, y });
+    bg.setFillColor(sf::Color(20, 10, 10, 200));
+    target.draw(bg);
+
+    sf::RectangleShape fill({ kBarW * ratio, kBarH });
+    fill.setPosition({ x, y });
+    fill.setFillColor(sf::Color(200, 50, 50));
+    target.draw(fill);
 }
 
 void EnemyBase::update(float dt)

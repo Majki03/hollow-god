@@ -3,6 +3,7 @@
 #include "entity/Entity.h"
 
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 
 namespace hollow {
 
@@ -28,6 +29,9 @@ public:
     virtual void seek(sf::Vector2f playerPos) = 0;
 
     void update(float dt) override; // integrates physics, then calls the hooks
+
+    // Draws a small HP bar centred above the enemy body.
+    void renderHpBar(sf::RenderTarget& target) const;
 
 protected:
     // Sync the subclass's drawable to the current m_position.

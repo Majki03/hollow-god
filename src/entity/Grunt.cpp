@@ -27,6 +27,7 @@ void Grunt::seek(sf::Vector2f playerPos)
 void Grunt::render(sf::RenderTarget& target) const
 {
     target.draw(m_body);
+    renderHpBar(target);
 }
 
 } // namespace hollow

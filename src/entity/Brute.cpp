@@ -27,6 +27,7 @@ void Brute::seek(sf::Vector2f playerPos)
 void Brute::render(sf::RenderTarget& target) const
 {
     target.draw(m_body);
+    renderHpBar(target);
 }
 
 } // namespace hollow
