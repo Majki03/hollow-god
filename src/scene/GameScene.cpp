@@ -11,6 +11,7 @@
 #include "physics/Collision.h"
 #include "scene/BoonSelectionScene.h"
 #include "scene/DeathScene.h"
+#include "scene/PauseScene.h"
 #include "scene/SceneStack.h"
 #include "scene/VictoryScene.h"
 #include "world/Room.h"
@@ -118,8 +119,9 @@ void GameScene::handleEvent(const sf::Event& /*event*/)
 
 void GameScene::update(float dt)
 {
-    if (m_ctx.actions.justPressed(Action::Back)) {
-        m_ctx.scenes.pop();
+    if (m_ctx.actions.justPressed(Action::Pause) ||
+        m_ctx.actions.justPressed(Action::Back)) {
+        m_ctx.scenes.push(std::make_unique<PauseScene>(m_ctx));
         return;
     }
 

@@ -37,6 +37,7 @@ add_executable(hollow_god
     src/scene/BoonSelectionScene.cpp
     src/scene/DeathScene.cpp
     src/scene/GameScene.cpp
+    src/scene/PauseScene.cpp
     src/scene/SceneStack.cpp
     src/scene/VictoryScene.cpp
     src/scene/TitleScene.cpp
