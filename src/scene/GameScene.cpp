@@ -34,6 +34,7 @@ namespace {
 GameScene::GameScene(SceneContext& ctx)
     : Scene(ctx)
     , m_room(kRoomOrigin, kRoomSize)
+    , m_hud(ctx)
     , m_rng(std::random_device{}())
 {
     auto player = std::make_unique<Player>(
@@ -144,7 +145,7 @@ void GameScene::update(float dt)
 
     resolveCombat();
     resolveEnemyContact();
-    m_hud.update(*m_player);
+    m_hud.update(*m_player, m_wave);
 
     if (!m_player->alive()) {
         m_ctx.scenes.push(std::make_unique<DeathScene>(m_ctx));

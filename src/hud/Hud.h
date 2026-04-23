@@ -8,26 +8,28 @@ namespace sf { class RenderTarget; }
 namespace hollow {
 
 class Player;
+struct SceneContext;
 
-// Draws the HP bar at the bottom-left corner of the screen.
-// Owns no game state — reads from Player each frame.
+// Bottom-left HP bar + label; top-right wave counter.
 class Hud {
 public:
-    Hud();
+    explicit Hud(const SceneContext& ctx);
 
-    void update(const Player& player);
+    void update(const Player& player, int wave);
     void render(sf::RenderTarget& target) const;
 
 private:
     sf::RectangleShape m_barBg;
     sf::RectangleShape m_barFill;
+    sf::Text           m_hpLabel;
+    sf::Text           m_waveLabel;
 
-    static constexpr float kBarW  = 200.f;
-    static constexpr float kBarH  = 14.f;
-    static constexpr float kPadX  = 20.f;
-    static constexpr float kPadY  = 20.f;
-    // bar sits at bottom-left; y origin is from top so we anchor via window h
-    static constexpr float kWinH  = 720.f;
+    static constexpr float kBarW = 200.f;
+    static constexpr float kBarH =  14.f;
+    static constexpr float kPadX =  20.f;
+    static constexpr float kPadY =  20.f;
+    static constexpr float kWinW = 1280.f;
+    static constexpr float kWinH =  720.f;
 };
 
 } // namespace hollow

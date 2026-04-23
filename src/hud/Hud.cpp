@@ -1,5 +1,7 @@
 #include "hud/Hud.h"
 
+#include "core/SceneContext.h"
+#include "core/TextUtil.h"
 #include "entity/Player.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -12,7 +14,9 @@ namespace {
     const sf::Color kLowColor  = sf::Color(220, 100, 20);
 }
 
-Hud::Hud()
+Hud::Hud(const SceneContext& ctx)
+    : m_hpLabel(makeText(ctx, "", 12, sf::Color(180, 150, 150)))
+    , m_waveLabel(makeText(ctx, "", 16, sf::Color(160, 140, 110)))
 {
     const float y = kWinH - kPadY - kBarH;
 
@@ -23,20 +27,32 @@ Hud::Hud()
     m_barFill.setPosition({ kPadX, y });
     m_barFill.setSize({ kBarW, kBarH });
     m_barFill.setFillColor(kFillColor);
+
+    // HP label sits just above the bar.
+    m_hpLabel.setPosition({ kPadX, y - 18.f });
+
+    // Wave label anchored top-right.
+    m_waveLabel.setPosition({ kWinW - kPadX - 120.f, kPadY });
 }
 
-void Hud::update(const Player& player)
+void Hud::update(const Player& player, int wave)
 {
     const float ratio = static_cast<float>(player.hp()) /
                         static_cast<float>(player.maxHp());
     m_barFill.setSize({ kBarW * ratio, kBarH });
     m_barFill.setFillColor(ratio < 0.3f ? kLowColor : kFillColor);
+
+    m_hpLabel.setString(std::to_string(player.hp()) + " / " +
+                        std::to_string(player.maxHp()));
+    m_waveLabel.setString("Wave  " + std::to_string(wave));
 }
 
 void Hud::render(sf::RenderTarget& target) const
 {
     target.draw(m_barBg);
     target.draw(m_barFill);
+    target.draw(m_hpLabel);
+    target.draw(m_waveLabel);
 }
 
 } // namespace hollow
