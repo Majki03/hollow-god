@@ -11,17 +11,42 @@ SceneStack::~SceneStack() = default;
 
 void SceneStack::push(std::unique_ptr<Scene> scene)
 {
-    scene->onEnter();
-    m_stack.push_back(std::move(scene));
+    if (m_flushing) {
+        scene->onEnter();
+        m_stack.push_back(std::move(scene));
+    } else {
+        m_pending.push_back({ true, std::move(scene) });
+    }
 }
 
 void SceneStack::pop()
 {
-    if (m_stack.empty()) {
-        return;
+    if (m_flushing) {
+        if (!m_stack.empty()) {
+            m_stack.back()->onExit();
+            m_stack.pop_back();
+        }
+    } else {
+        m_pending.push_back({ false, nullptr });
     }
-    m_stack.back()->onExit();
-    m_stack.pop_back();
+}
+
+void SceneStack::flushPending()
+{
+    m_flushing = true;
+    for (auto& cmd : m_pending) {
+        if (cmd.isPush) {
+            cmd.scene->onEnter();
+            m_stack.push_back(std::move(cmd.scene));
+        } else {
+            if (!m_stack.empty()) {
+                m_stack.back()->onExit();
+                m_stack.pop_back();
+            }
+        }
+    }
+    m_pending.clear();
+    m_flushing = false;
 }
 
 void SceneStack::handleEvent(const sf::Event& event)
@@ -36,6 +61,7 @@ void SceneStack::update(float dt)
     if (!m_stack.empty()) {
         m_stack.back()->update(dt);
     }
+    flushPending();
 }
 
 void SceneStack::render(sf::RenderTarget& target)

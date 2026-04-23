@@ -6,6 +6,7 @@
 #include "hud/Hud.h"
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
+#include "scene/DeathScene.h"
 #include "scene/SceneStack.h"
 #include "world/Room.h"
 
@@ -112,7 +113,7 @@ void GameScene::update(float dt)
     m_hud.update(*m_player);
 
     if (!m_player->alive()) {
-        m_ctx.scenes.pop();   // TODO: push DeathScene instead
+        m_ctx.scenes.push(std::make_unique<DeathScene>(m_ctx));
         return;
     }
 

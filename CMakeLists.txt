@@ -30,6 +30,7 @@ add_executable(hollow_god
     src/entity/Player.cpp
     src/input/ActionMap.cpp
     src/input/InputState.cpp
+    src/scene/DeathScene.cpp
     src/scene/GameScene.cpp
     src/scene/SceneStack.cpp
     src/scene/TitleScene.cpp

@@ -12,6 +12,8 @@ namespace hollow {
 
 class Scene;
 
+// Scene transitions requested inside update() are deferred until after the
+// current update tick completes, so no scene ever destroys itself mid-frame.
 class SceneStack {
 public:
     SceneStack();
@@ -27,7 +29,18 @@ public:
     void render(sf::RenderTarget& target);
 
 private:
+    void flushPending();
+
+    struct PendingPush { std::unique_ptr<Scene> scene; };
+    struct PendingPop  {};
+    struct Command {
+        bool isPush;
+        std::unique_ptr<Scene> scene; // valid only when isPush
+    };
+
     std::vector<std::unique_ptr<Scene>> m_stack;
+    std::vector<Command>                m_pending;
+    bool                                m_flushing = false;
 };
 
 } // namespace hollow
