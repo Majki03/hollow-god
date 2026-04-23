@@ -87,6 +87,20 @@ void GameScene::update(float dt)
     }
 
     m_world.update(dt);
+
+    // Keep entities inside the walkable area.
+    constexpr float kPlayerR = 14.f;
+    constexpr float kEnemyR  = 18.f;
+    const sf::Vector2f pMin = m_room.topLeft() + sf::Vector2f(Room::kWallThick + kPlayerR, Room::kWallThick + kPlayerR);
+    const sf::Vector2f pMax = m_room.topLeft() + m_room.size() - sf::Vector2f(Room::kWallThick + kPlayerR, Room::kWallThick + kPlayerR);
+    m_player->confine(pMin, pMax);
+
+    const sf::Vector2f eMin = m_room.topLeft() + sf::Vector2f(Room::kWallThick + kEnemyR, Room::kWallThick + kEnemyR);
+    const sf::Vector2f eMax = m_room.topLeft() + m_room.size() - sf::Vector2f(Room::kWallThick + kEnemyR, Room::kWallThick + kEnemyR);
+    for (Enemy* e : m_enemies) {
+        if (e->alive()) e->confine(eMin, eMax);
+    }
+
     resolveCombat();
 
     // Drop dangling enemy refs BEFORE World frees the memory they point to.

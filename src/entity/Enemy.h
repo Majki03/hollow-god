@@ -12,6 +12,7 @@ public:
 
     void  damage(int amount);
     void  applyImpulse(sf::Vector2f impulse);
+    void  confine(sf::Vector2f min, sf::Vector2f max);
     int   hp() const     { return m_hp; }
     float radius() const { return kRadius; }
 

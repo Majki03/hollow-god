@@ -27,6 +27,10 @@ public:
     // hit them so the hitbox can't double-tap the same target in one swing.
     int swingId() const { return m_swingId; }
 
+    // Clamp the player inside [min, max] and zero any velocity component that
+    // pushed against a wall so movement doesn't accumulate into the boundary.
+    void confine(sf::Vector2f min, sf::Vector2f max);
+
     void update(float dt) override;
     void render(sf::RenderTarget& target) const override;
 

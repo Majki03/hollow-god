@@ -14,6 +14,8 @@ class Room {
 public:
     Room(sf::Vector2f topLeft, sf::Vector2f size);
 
+    static constexpr float kWallThick = 24.f;
+
     sf::Vector2f topLeft() const { return m_topLeft; }
     sf::Vector2f size()    const { return m_size; }
     sf::Vector2f center()  const { return m_topLeft + m_size * 0.5f; }

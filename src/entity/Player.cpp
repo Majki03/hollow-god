@@ -124,6 +124,15 @@ void Player::update(float dt)
     }
 }
 
+void Player::confine(sf::Vector2f mn, sf::Vector2f mx)
+{
+    if (m_position.x < mn.x) { m_position.x = mn.x; m_velocity.x = std::max(m_velocity.x, 0.f); }
+    if (m_position.x > mx.x) { m_position.x = mx.x; m_velocity.x = std::min(m_velocity.x, 0.f); }
+    if (m_position.y < mn.y) { m_position.y = mn.y; m_velocity.y = std::max(m_velocity.y, 0.f); }
+    if (m_position.y > mx.y) { m_position.y = mx.y; m_velocity.y = std::min(m_velocity.y, 0.f); }
+    m_body.setPosition(m_position);
+}
+
 void Player::render(sf::RenderTarget& target) const
 {
     target.draw(m_aimIndicator);
