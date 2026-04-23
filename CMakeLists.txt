@@ -25,6 +25,7 @@ FetchContent_MakeAvailable(SFML)
 add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
+    src/boon/BoonPool.cpp
     src/entity/Brute.cpp
     src/entity/Charger.cpp
     src/entity/EnemyBase.cpp
@@ -42,6 +43,12 @@ add_executable(hollow_god
 )
 
 target_include_directories(hollow_god PRIVATE src)
+
+# Dev-only convenience: point at a font that ships with SFML's examples so we
+# don't need a bundled asset yet. Replace with a proper asset path before shipping.
+target_compile_definitions(hollow_god PRIVATE
+    HG_DEV_FONT="${sfml_SOURCE_DIR}/examples/shader/resources/tuffy.ttf"
+)
 
 # SFML 2.6 headers trip -Wdeprecated-declarations on newer libc++
 # (sf::String instantiates basic_string<uint32_t>). Consuming them as SYSTEM

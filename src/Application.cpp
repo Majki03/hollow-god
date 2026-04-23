@@ -21,6 +21,11 @@ Application::Application()
     , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts }
 {
     m_window.setVerticalSyncEnabled(true);
+
+    // Best-effort font load. Missing font means text is absent, not a crash.
+    // TODO: bundle a proper font asset and remove HG_DEV_FONT.
+    try { m_fonts.get(HG_DEV_FONT); } catch (...) {}
+
     m_scenes.push(std::make_unique<TitleScene>(m_ctx));
 }
 
