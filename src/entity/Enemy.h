@@ -22,12 +22,18 @@ public:
     int  lastHitSwing() const           { return m_lastHitSwing; }
     void setLastHitSwing(int swingId)   { m_lastHitSwing = swingId; }
 
+    // Point the enemy toward a target each frame so it chases the player.
+    // Called by GameScene before update() so knockback and movement integrate
+    // together inside update().
+    void seek(sf::Vector2f target);
+
     void update(float dt) override;
     void render(sf::RenderTarget& target) const override;
 
 private:
     sf::RectangleShape m_body;
-    sf::Vector2f       m_velocity{};
+    sf::Vector2f       m_knockback{};   // impulse-driven, decays over time
+    sf::Vector2f       m_moveVel{};     // seek-driven, set fresh each frame
     int                m_hp            = kMaxHp;
     int                m_lastHitSwing  = -1;
     float              m_flashTimer    = 0.f;
@@ -36,6 +42,7 @@ private:
     static constexpr float kRadius            = 18.f;
     static constexpr float kFlashDuration     = 0.08f;
     static constexpr float kKnockbackHalfLife = 0.10f; // velocity halves every 100ms
+    static constexpr float kMoveSpeed         = 110.f;
 };
 
 } // namespace hollow

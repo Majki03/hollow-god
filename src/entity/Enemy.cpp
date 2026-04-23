@@ -31,17 +31,24 @@ void Enemy::damage(int amount)
     }
 }
 
+void Enemy::seek(sf::Vector2f target)
+{
+    sf::Vector2f dir = target - m_position;
+    const float d2 = dir.x * dir.x + dir.y * dir.y;
+    m_moveVel = (d2 > 0.f) ? dir * (kMoveSpeed / std::sqrt(d2)) : sf::Vector2f{};
+}
+
 void Enemy::applyImpulse(sf::Vector2f impulse)
 {
-    m_velocity += impulse;
+    m_knockback += impulse;
 }
 
 void Enemy::confine(sf::Vector2f mn, sf::Vector2f mx)
 {
-    if (m_position.x < mn.x) { m_position.x = mn.x; m_velocity.x = std::max(m_velocity.x, 0.f); }
-    if (m_position.x > mx.x) { m_position.x = mx.x; m_velocity.x = std::min(m_velocity.x, 0.f); }
-    if (m_position.y < mn.y) { m_position.y = mn.y; m_velocity.y = std::max(m_velocity.y, 0.f); }
-    if (m_position.y > mx.y) { m_position.y = mx.y; m_velocity.y = std::min(m_velocity.y, 0.f); }
+    if (m_position.x < mn.x) { m_position.x = mn.x; m_knockback.x = std::max(m_knockback.x, 0.f); }
+    if (m_position.x > mx.x) { m_position.x = mx.x; m_knockback.x = std::min(m_knockback.x, 0.f); }
+    if (m_position.y < mn.y) { m_position.y = mn.y; m_knockback.y = std::max(m_knockback.y, 0.f); }
+    if (m_position.y > mx.y) { m_position.y = mx.y; m_knockback.y = std::min(m_knockback.y, 0.f); }
     m_body.setPosition(m_position);
 }
 
@@ -52,11 +59,8 @@ void Enemy::update(float dt)
         m_body.setFillColor(m_flashTimer > 0.f ? kFlashFill : kBaseFill);
     }
 
-    // Knockback: integrate velocity, then decay it toward zero with a
-    // half-life. Framerate-independent, always reaches "essentially zero"
-    // within a few tenths of a second.
-    m_position += m_velocity * dt;
-    m_velocity *= std::exp2(-dt / kKnockbackHalfLife);
+    m_position += (m_knockback + m_moveVel) * dt;
+    m_knockback *= std::exp2(-dt / kKnockbackHalfLife);
 
     m_body.setPosition(m_position);
 }

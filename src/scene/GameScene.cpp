@@ -86,6 +86,11 @@ void GameScene::update(float dt)
         return;
     }
 
+    const sf::Vector2f playerPos = m_player->position();
+    for (Enemy* e : m_enemies) {
+        if (e->alive()) e->seek(playerPos);
+    }
+
     m_world.update(dt);
 
     // Keep entities inside the walkable area.
