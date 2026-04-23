@@ -51,6 +51,7 @@ private:
     std::vector<EnemyBase*> m_enemies;
     std::vector<Particle>   m_particles;
     int                     m_wave        = 0;
+    int                     m_kills       = 0;
     bool                    m_boonPending = false;
     float                   m_shakeTrauma = 0.f;
     int                     m_prevHp      = 0;     // detect damage this frame for shake trigger

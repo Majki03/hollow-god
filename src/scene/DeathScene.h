@@ -9,7 +9,7 @@ namespace hollow {
 
 class DeathScene : public Scene {
 public:
-    explicit DeathScene(SceneContext& ctx);
+    DeathScene(SceneContext& ctx, int wave, int kills);
 
     void handleEvent(const sf::Event&) override {}
     void update(float dt) override;
@@ -19,6 +19,7 @@ private:
     sf::RectangleShape m_overlay;
     sf::RectangleShape m_banner;
     sf::Text           m_heading;
+    sf::Text           m_stats;
     sf::Text           m_hints;
     float              m_time = 0.f;
 };

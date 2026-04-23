@@ -164,10 +164,10 @@ void GameScene::update(float dt)
     m_prevHp = m_player->hp();
     m_shakeTrauma = std::max(0.f, m_shakeTrauma - 2.2f * dt);
 
-    m_hud.update(*m_player, m_wave);
+    m_hud.update(*m_player, m_wave, m_kills);
 
     if (!m_player->alive()) {
-        m_ctx.scenes.push(std::make_unique<DeathScene>(m_ctx));
+        m_ctx.scenes.push(std::make_unique<DeathScene>(m_ctx, m_wave, m_kills));
         return;
     }
 
@@ -178,7 +178,7 @@ void GameScene::update(float dt)
         constexpr int kVictoryWave = 10;
         if (m_wave >= kVictoryWave) {
             m_ctx.scenes.push(
-                std::make_unique<VictoryScene>(m_ctx, m_wave, m_player->hp()));
+                std::make_unique<VictoryScene>(m_ctx, m_wave, m_player->hp(), m_kills));
         } else if (m_wave % 2 == 0) {
             // Offer a boon every 2 waves.
             m_boonPending = true;
@@ -238,6 +238,7 @@ void GameScene::resolveCombat()
             }
 
             if (!e->alive()) {
+                ++m_kills;
                 emitDeathParticles(e->position(), e->normalColor());
                 if (m_player->stats().onKillHeal > 0)
                     m_player->healBy(m_player->stats().onKillHeal);

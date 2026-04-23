@@ -16,14 +16,15 @@
 
 namespace hollow {
 
-VictoryScene::VictoryScene(SceneContext& ctx, int wavesCleared, int hpRemaining)
+VictoryScene::VictoryScene(SceneContext& ctx, int wavesCleared, int hpRemaining, int kills)
     : Scene(ctx)
     , m_overlay({ 1280.f, 720.f })
     , m_banner({ 400.f, 6.f })
     , m_heading(makeText(ctx, "VICTORY", 68, sf::Color(220, 180, 50)))
     , m_stats(makeText(ctx,
-        "Waves cleared: " + std::to_string(wavesCleared) +
-        "     HP remaining: " + std::to_string(hpRemaining),
+        "Waves: " + std::to_string(wavesCleared) +
+        "     Kills: " + std::to_string(kills) +
+        "     HP: " + std::to_string(hpRemaining),
         18, sf::Color(180, 160, 100)))
     , m_hints(makeText(ctx, "Enter  new run     Esc  title", 15, sf::Color(120, 110, 70)))
 {

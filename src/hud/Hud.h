@@ -15,7 +15,7 @@ class Hud {
 public:
     explicit Hud(const SceneContext& ctx);
 
-    void update(const Player& player, int wave);
+    void update(const Player& player, int wave, int kills);
     void render(sf::RenderTarget& target) const;
 
 private:
@@ -23,6 +23,7 @@ private:
     sf::RectangleShape m_barFill;
     sf::Text           m_hpLabel;
     sf::Text           m_waveLabel;
+    sf::Text           m_killLabel;
 
     static constexpr float kBarW = 200.f;
     static constexpr float kBarH =  14.f;

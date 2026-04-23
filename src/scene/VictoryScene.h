@@ -9,7 +9,7 @@ namespace hollow {
 
 class VictoryScene : public Scene {
 public:
-    VictoryScene(SceneContext& ctx, int wavesCleared, int hpRemaining);
+    VictoryScene(SceneContext& ctx, int wavesCleared, int hpRemaining, int kills);
 
     void handleEvent(const sf::Event&) override {}
     void update(float dt) override;
