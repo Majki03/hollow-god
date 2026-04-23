@@ -9,6 +9,7 @@
 #include "hud/Hud.h"
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
+#include "scene/BoonSelectionScene.h"
 #include "scene/DeathScene.h"
 #include "scene/SceneStack.h"
 #include "world/Room.h"
@@ -97,6 +98,17 @@ void GameScene::spawnWave()
     for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos());
 }
 
+void GameScene::onEnter()
+{
+    // Called when GameScene becomes the top of the stack again — i.e. right
+    // after the BoonSelectionScene popped. Spawn the next wave here so the
+    // game is never left in an empty-but-waiting state.
+    if (m_boonPending) {
+        m_boonPending = false;
+        spawnWave();
+    }
+}
+
 void GameScene::handleEvent(const sf::Event& /*event*/)
 {
 }
@@ -142,8 +154,15 @@ void GameScene::update(float dt)
     std::erase_if(m_enemies, [](const EnemyBase* e) { return !e->alive(); });
     m_world.pruneDead();
 
-    if (m_enemies.empty()) {
-        spawnWave();
+    if (m_enemies.empty() && !m_boonPending) {
+        // Offer a boon every 2 waves; spawn the next wave immediately otherwise.
+        if (m_wave % 2 == 0) {
+            m_boonPending = true;
+            m_ctx.scenes.push(
+                std::make_unique<BoonSelectionScene>(m_ctx, *m_player));
+        } else {
+            spawnWave();
+        }
     }
 }
 

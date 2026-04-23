@@ -42,6 +42,10 @@ void SceneStack::flushPending()
             if (!m_stack.empty()) {
                 m_stack.back()->onExit();
                 m_stack.pop_back();
+                // Notify the newly-exposed scene that it's on top again.
+                if (!m_stack.empty()) {
+                    m_stack.back()->onEnter();
+                }
             }
         }
     }

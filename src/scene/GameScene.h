@@ -26,17 +26,21 @@ public:
 private:
     template<typename T>
     void spawnEnemy(sf::Vector2f position);
+
     void spawnWave();
     void resolveCombat();
     void resolveEnemyContact();
     void separateEnemies();
+
+    void onEnter() override;
 
     Room                    m_room;
     World                   m_world;
     Hud                     m_hud;
     Player*                 m_player = nullptr;
     std::vector<EnemyBase*> m_enemies;
-    int                     m_wave   = 0;
+    int                     m_wave        = 0;
+    bool                    m_boonPending = false; // true while boon screen is up
     std::mt19937            m_rng;
 };
 
