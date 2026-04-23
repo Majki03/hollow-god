@@ -12,6 +12,7 @@
 #include "scene/BoonSelectionScene.h"
 #include "scene/DeathScene.h"
 #include "scene/SceneStack.h"
+#include "scene/VictoryScene.h"
 #include "world/Room.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -172,8 +173,12 @@ void GameScene::update(float dt)
     m_world.pruneDead();
 
     if (m_enemies.empty() && !m_boonPending) {
-        // Offer a boon every 2 waves; spawn the next wave immediately otherwise.
-        if (m_wave % 2 == 0) {
+        constexpr int kVictoryWave = 10;
+        if (m_wave >= kVictoryWave) {
+            m_ctx.scenes.push(
+                std::make_unique<VictoryScene>(m_ctx, m_wave, m_player->hp()));
+        } else if (m_wave % 2 == 0) {
+            // Offer a boon every 2 waves.
             m_boonPending = true;
             m_ctx.scenes.push(
                 std::make_unique<BoonSelectionScene>(m_ctx, *m_player));

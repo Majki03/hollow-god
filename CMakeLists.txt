@@ -38,6 +38,7 @@ add_executable(hollow_god
     src/scene/DeathScene.cpp
     src/scene/GameScene.cpp
     src/scene/SceneStack.cpp
+    src/scene/VictoryScene.cpp
     src/scene/TitleScene.cpp
     src/world/Room.cpp
     src/world/World.cpp
