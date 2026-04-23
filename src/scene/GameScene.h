@@ -40,7 +40,9 @@ private:
     Player*                 m_player = nullptr;
     std::vector<EnemyBase*> m_enemies;
     int                     m_wave        = 0;
-    bool                    m_boonPending = false; // true while boon screen is up
+    bool                    m_boonPending = false;
+    float                   m_shakeTrauma = 0.f;
+    int                     m_prevHp      = 0;     // detect damage this frame for shake trigger
     std::mt19937            m_rng;
 };
 

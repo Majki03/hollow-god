@@ -145,6 +145,14 @@ void GameScene::update(float dt)
 
     resolveCombat();
     resolveEnemyContact();
+
+    // Trigger shake if the player just took a hit.
+    if (!m_player->alive() || m_player->hp() < m_prevHp) {
+        m_shakeTrauma = std::min(m_shakeTrauma + 0.7f, 1.f);
+    }
+    m_prevHp = m_player->hp();
+    m_shakeTrauma = std::max(0.f, m_shakeTrauma - 2.2f * dt);
+
     m_hud.update(*m_player, m_wave);
 
     if (!m_player->alive()) {
@@ -235,8 +243,22 @@ void GameScene::resolveEnemyContact()
 
 void GameScene::render(sf::RenderTarget& target)
 {
+    // Apply screen shake by temporarily offsetting the view.
+    const sf::View original = target.getView();
+    if (m_shakeTrauma > 0.f) {
+        constexpr float kMaxOffset = 14.f;
+        std::uniform_real_distribution<float> jitter(-1.f, 1.f);
+        const float mag = m_shakeTrauma * m_shakeTrauma * kMaxOffset;
+        sf::View shaken = original;
+        shaken.move(jitter(m_rng) * mag, jitter(m_rng) * mag);
+        target.setView(shaken);
+    }
+
     m_room.render(target);
     m_world.render(target);
+
+    // HUD is always in screen-space — reset view before drawing it.
+    target.setView(original);
     m_hud.render(target);
 }
 
