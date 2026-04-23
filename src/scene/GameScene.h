@@ -12,7 +12,7 @@
 
 namespace hollow {
 
-class Enemy;
+class EnemyBase;
 class Player;
 
 class GameScene : public Scene {
@@ -24,18 +24,19 @@ public:
     void render(sf::RenderTarget& target) override;
 
 private:
+    template<typename T>
     void spawnEnemy(sf::Vector2f position);
     void spawnWave();
     void resolveCombat();
     void resolveEnemyContact();
 
-    Room                m_room;
-    World               m_world;
-    Hud                 m_hud;
-    Player*             m_player = nullptr;   // non-owning; World owns lifetime
-    std::vector<Enemy*> m_enemies;            // non-owning; pruned in lockstep
-    int                 m_wave   = 0;
-    std::mt19937        m_rng;
+    Room                    m_room;
+    World                   m_world;
+    Hud                     m_hud;
+    Player*                 m_player = nullptr;
+    std::vector<EnemyBase*> m_enemies;
+    int                     m_wave   = 0;
+    std::mt19937            m_rng;
 };
 
 } // namespace hollow

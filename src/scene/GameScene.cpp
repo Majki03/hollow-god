@@ -1,7 +1,8 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
-#include "entity/Enemy.h"
+#include "entity/EnemyBase.h"
+#include "entity/Grunt.h"
 #include "entity/Player.h"
 #include "hud/Hud.h"
 #include "input/ActionMap.h"
@@ -23,8 +24,8 @@ namespace hollow {
 namespace {
     constexpr int   kSwingDamage      = 10;
     constexpr float kKnockbackImpulse = 420.f;
+    constexpr float kPlayerR          = 14.f;
 
-    // Arena sits centred in the 1280×720 window with a generous border.
     const sf::Vector2f kRoomOrigin = { 120.f, 80.f };
     const sf::Vector2f kRoomSize   = { 1040.f, 560.f };
 }
@@ -42,20 +43,22 @@ GameScene::GameScene(SceneContext& ctx)
     spawnWave();
 }
 
+template<typename T>
 void GameScene::spawnEnemy(sf::Vector2f position)
 {
-    auto e = std::make_unique<Enemy>(position);
+    auto e = std::make_unique<T>(position);
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
 }
 
+// Explicit instantiation so the template body doesn't need to live in the header.
+template void GameScene::spawnEnemy<Grunt>(sf::Vector2f);
+
 void GameScene::spawnWave()
 {
     ++m_wave;
-    // Each wave adds one extra enemy, capped so early rooms stay manageable.
     const int count = std::min(m_wave, 5);
 
-    // wall thickness (24) + enemy radius (18) + small gap
     constexpr float kEdge = 50.f;
     std::uniform_real_distribution<float> rX(
         m_room.topLeft().x + kEdge, m_room.topLeft().x + m_room.size().x - kEdge);
@@ -66,14 +69,13 @@ void GameScene::spawnWave()
     constexpr float    kMinDist  = 220.f;
 
     for (int i = 0; i < count; ++i) {
-        // Rejection-sample until we're far enough from the player.
         sf::Vector2f pos;
         for (int attempt = 0; attempt < 20; ++attempt) {
             pos = { rX(m_rng), rY(m_rng) };
             const sf::Vector2f d = pos - playerPos;
             if (d.x * d.x + d.y * d.y >= kMinDist * kMinDist) break;
         }
-        spawnEnemy(pos);
+        spawnEnemy<Grunt>(pos);
     }
 }
 
@@ -89,23 +91,24 @@ void GameScene::update(float dt)
     }
 
     const sf::Vector2f playerPos = m_player->position();
-    for (Enemy* e : m_enemies) {
+    for (EnemyBase* e : m_enemies) {
         if (e->alive()) e->seek(playerPos);
     }
 
     m_world.update(dt);
 
-    // Keep entities inside the walkable area.
-    constexpr float kPlayerR = 14.f;
-    constexpr float kEnemyR  = 18.f;
+    // Keep entities inside the walkable area (each enemy type may have a
+    // different radius so we read it from the object, not a hardcoded constant).
     const sf::Vector2f pMin = m_room.topLeft() + sf::Vector2f(Room::kWallThick + kPlayerR, Room::kWallThick + kPlayerR);
     const sf::Vector2f pMax = m_room.topLeft() + m_room.size() - sf::Vector2f(Room::kWallThick + kPlayerR, Room::kWallThick + kPlayerR);
     m_player->confine(pMin, pMax);
 
-    const sf::Vector2f eMin = m_room.topLeft() + sf::Vector2f(Room::kWallThick + kEnemyR, Room::kWallThick + kEnemyR);
-    const sf::Vector2f eMax = m_room.topLeft() + m_room.size() - sf::Vector2f(Room::kWallThick + kEnemyR, Room::kWallThick + kEnemyR);
-    for (Enemy* e : m_enemies) {
-        if (e->alive()) e->confine(eMin, eMax);
+    for (EnemyBase* e : m_enemies) {
+        if (!e->alive()) continue;
+        const float r = e->radius();
+        const sf::Vector2f eMin = m_room.topLeft() + sf::Vector2f(Room::kWallThick + r, Room::kWallThick + r);
+        const sf::Vector2f eMax = m_room.topLeft() + m_room.size() - sf::Vector2f(Room::kWallThick + r, Room::kWallThick + r);
+        e->confine(eMin, eMax);
     }
 
     resolveCombat();
@@ -117,8 +120,7 @@ void GameScene::update(float dt)
         return;
     }
 
-    // Drop dangling enemy refs BEFORE World frees the memory they point to.
-    std::erase_if(m_enemies, [](const Enemy* e) { return !e->alive(); });
+    std::erase_if(m_enemies, [](const EnemyBase* e) { return !e->alive(); });
     m_world.pruneDead();
 
     if (m_enemies.empty()) {
@@ -128,23 +130,18 @@ void GameScene::update(float dt)
 
 void GameScene::resolveCombat()
 {
-    if (!m_player->hitboxActive()) {
-        return;
-    }
+    if (!m_player->hitboxActive()) return;
 
     const auto  center = m_player->hitboxPosition();
     const float radius = m_player->hitboxRadius();
     const int   swing  = m_player->swingId();
 
-    for (Enemy* e : m_enemies) {
-        if (!e->alive() || e->lastHitSwing() == swing) {
-            continue;
-        }
+    for (EnemyBase* e : m_enemies) {
+        if (!e->alive() || e->lastHitSwing() == swing) continue;
         if (physics::circlesOverlap(center, radius, e->position(), e->radius())) {
             e->damage(kSwingDamage);
             e->setLastHitSwing(swing);
 
-            // Knock the enemy away from the swing centre.
             sf::Vector2f dir = e->position() - center;
             const float  d2  = dir.x * dir.x + dir.y * dir.y;
             if (d2 > 0.f) {
@@ -157,9 +154,7 @@ void GameScene::resolveCombat()
 
 void GameScene::resolveEnemyContact()
 {
-    constexpr float kPlayerR = 14.f;
-
-    for (Enemy* e : m_enemies) {
+    for (EnemyBase* e : m_enemies) {
         if (!e->alive()) continue;
         if (physics::circlesOverlap(m_player->position(), kPlayerR,
                                     e->position(),         e->radius())) {
