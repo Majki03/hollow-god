@@ -68,6 +68,54 @@ void Room::buildGeometry()
         }
     }
 
+    // Vignette: four trapezoid quads, one per edge of the floor, shading from
+    // opaque-black at the wall border to transparent at the inner quarter.
+    {
+        const float fx0 = x + t;
+        const float fy0 = y + t;
+        const float fx1 = x + w - t;
+        const float fy1 = y + h - t;
+        const float fw  = fx1 - fx0;
+        const float fh  = fy1 - fy0;
+
+        const sf::Color dark(0, 0, 0, 120);
+        const sf::Color clear(0, 0, 0, 0);
+        const float kDepth = 0.22f; // fraction of floor width/height
+
+        m_vignette.clear();
+        m_vignette.setPrimitiveType(sf::Triangles);
+
+        // Helper: push a quad (two triangles) given 4 corners.
+        auto pushQuad = [&](sf::Vector2f a, sf::Vector2f b,
+                            sf::Vector2f c, sf::Vector2f d,
+                            sf::Color ca, sf::Color cb,
+                            sf::Color cc, sf::Color cd) {
+            m_vignette.append({ a, ca });
+            m_vignette.append({ b, cb });
+            m_vignette.append({ c, cc });
+            m_vignette.append({ a, ca });
+            m_vignette.append({ c, cc });
+            m_vignette.append({ d, cd });
+        };
+
+        // North edge (top strip).
+        pushQuad({ fx0, fy0 }, { fx1, fy0 },
+                 { fx1, fy0 + fh * kDepth }, { fx0, fy0 + fh * kDepth },
+                 dark, dark, clear, clear);
+        // South edge.
+        pushQuad({ fx0, fy1 - fh * kDepth }, { fx1, fy1 - fh * kDepth },
+                 { fx1, fy1 }, { fx0, fy1 },
+                 clear, clear, dark, dark);
+        // West edge.
+        pushQuad({ fx0, fy0 }, { fx0 + fw * kDepth, fy0 },
+                 { fx0 + fw * kDepth, fy1 }, { fx0, fy1 },
+                 dark, clear, clear, dark);
+        // East edge.
+        pushQuad({ fx1 - fw * kDepth, fy0 }, { fx1, fy0 },
+                 { fx1, fy1 }, { fx1 - fw * kDepth, fy1 },
+                 clear, dark, dark, clear);
+    }
+
     auto makeWall = [&](sf::RectangleShape& wall,
                         sf::Vector2f pos, sf::Vector2f sz) {
         wall.setPosition(pos);
@@ -87,6 +135,7 @@ void Room::render(sf::RenderTarget& target) const
 {
     target.draw(m_floor);
     target.draw(m_grid);
+    target.draw(m_vignette);
     target.draw(m_wallN);
     target.draw(m_wallS);
     target.draw(m_wallW);
