@@ -3,6 +3,7 @@
 #include "core/SceneContext.h"
 #include "entity/Enemy.h"
 #include "entity/Player.h"
+#include "hud/Hud.h"
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
 #include "scene/SceneStack.h"
@@ -108,6 +109,7 @@ void GameScene::update(float dt)
 
     resolveCombat();
     resolveEnemyContact();
+    m_hud.update(*m_player);
 
     if (!m_player->alive()) {
         m_ctx.scenes.pop();   // TODO: push DeathScene instead
@@ -169,6 +171,7 @@ void GameScene::render(sf::RenderTarget& target)
 {
     m_room.render(target);
     m_world.render(target);
+    m_hud.render(target);
 }
 
 } // namespace hollow

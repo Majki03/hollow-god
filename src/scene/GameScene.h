@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hud/Hud.h"
 #include "scene/Scene.h"
 #include "world/Room.h"
 #include "world/World.h"
@@ -30,6 +31,7 @@ private:
 
     Room                m_room;
     World               m_world;
+    Hud                 m_hud;
     Player*             m_player = nullptr;   // non-owning; World owns lifetime
     std::vector<Enemy*> m_enemies;            // non-owning; pruned in lockstep
     int                 m_wave   = 0;
