@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene/Scene.h"
+#include "world/Room.h"
 #include "world/World.h"
 
 #include <SFML/System/Vector2.hpp>
@@ -26,6 +27,7 @@ private:
     void spawnWave();
     void resolveCombat();
 
+    Room                m_room;
     World               m_world;
     Player*             m_player = nullptr;   // non-owning; World owns lifetime
     std::vector<Enemy*> m_enemies;            // non-owning; pruned in lockstep

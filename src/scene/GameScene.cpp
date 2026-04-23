@@ -6,6 +6,7 @@
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
 #include "scene/SceneStack.h"
+#include "world/Room.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Window/Event.hpp>
@@ -18,12 +19,17 @@
 namespace hollow {
 
 namespace {
-    constexpr int   kSwingDamage     = 10;
+    constexpr int   kSwingDamage      = 10;
     constexpr float kKnockbackImpulse = 420.f;
+
+    // Arena sits centred in the 1280×720 window with a generous border.
+    const sf::Vector2f kRoomOrigin = { 120.f, 80.f };
+    const sf::Vector2f kRoomSize   = { 1040.f, 560.f };
 }
 
 GameScene::GameScene(SceneContext& ctx)
     : Scene(ctx)
+    , m_room(kRoomOrigin, kRoomSize)
     , m_rng(std::random_device{}())
 {
     auto player = std::make_unique<Player>(
@@ -47,8 +53,12 @@ void GameScene::spawnWave()
     // Each wave adds one extra enemy, capped so early rooms stay manageable.
     const int count = std::min(m_wave, 5);
 
-    std::uniform_real_distribution<float> rX(120.f, 1160.f);
-    std::uniform_real_distribution<float> rY(120.f,  600.f);
+    // wall thickness (24) + enemy radius (18) + small gap
+    constexpr float kEdge = 50.f;
+    std::uniform_real_distribution<float> rX(
+        m_room.topLeft().x + kEdge, m_room.topLeft().x + m_room.size().x - kEdge);
+    std::uniform_real_distribution<float> rY(
+        m_room.topLeft().y + kEdge, m_room.topLeft().y + m_room.size().y - kEdge);
 
     const sf::Vector2f playerPos = m_player->position();
     constexpr float    kMinDist  = 220.f;
@@ -119,6 +129,7 @@ void GameScene::resolveCombat()
 
 void GameScene::render(sf::RenderTarget& target)
 {
+    m_room.render(target);
     m_world.render(target);
 }
 
