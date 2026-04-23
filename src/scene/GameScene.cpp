@@ -14,6 +14,7 @@
 #include "scene/SceneStack.h"
 #include "world/Room.h"
 
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Window/Event.hpp>
 
@@ -143,6 +144,13 @@ void GameScene::update(float dt)
         e->confine(eMin, eMax);
     }
 
+    // Tick particles.
+    for (Particle& p : m_particles) {
+        p.pos  += p.vel * dt;
+        p.life -= dt;
+    }
+    std::erase_if(m_particles, [](const Particle& p) { return p.life <= 0.f; });
+
     resolveCombat();
     resolveEnemyContact();
 
@@ -175,6 +183,32 @@ void GameScene::update(float dt)
     }
 }
 
+void GameScene::emitDeathParticles(sf::Vector2f pos, sf::Color color)
+{
+    constexpr int   kCount    = 10;
+    constexpr float kMinSpeed = 60.f;
+    constexpr float kMaxSpeed = 220.f;
+    constexpr float kLifeMin  = 0.25f;
+    constexpr float kLifeMax  = 0.45f;
+
+    std::uniform_real_distribution<float> rAngle(0.f, 6.2832f);
+    std::uniform_real_distribution<float> rSpeed(kMinSpeed, kMaxSpeed);
+    std::uniform_real_distribution<float> rLife(kLifeMin, kLifeMax);
+
+    for (int i = 0; i < kCount; ++i) {
+        const float angle = rAngle(m_rng);
+        const float speed = rSpeed(m_rng);
+        const float life  = rLife(m_rng);
+        Particle p;
+        p.pos     = pos;
+        p.vel     = { std::cos(angle) * speed, std::sin(angle) * speed };
+        p.life    = life;
+        p.maxLife = life;
+        p.color   = color;
+        m_particles.push_back(p);
+    }
+}
+
 void GameScene::resolveCombat()
 {
     if (!m_player->hitboxActive()) return;
@@ -196,8 +230,10 @@ void GameScene::resolveCombat()
                 e->applyImpulse(dir * m_player->stats().knockback);
             }
 
-            if (!e->alive() && m_player->stats().onKillHeal > 0) {
-                m_player->healBy(m_player->stats().onKillHeal);
+            if (!e->alive()) {
+                emitDeathParticles(e->position(), e->normalColor());
+                if (m_player->stats().onKillHeal > 0)
+                    m_player->healBy(m_player->stats().onKillHeal);
             }
         }
     }
@@ -256,6 +292,19 @@ void GameScene::render(sf::RenderTarget& target)
 
     m_room.render(target);
     m_world.render(target);
+
+    // Draw death particles (world-space, same shaken view).
+    {
+        sf::RectangleShape chip({ 4.f, 4.f });
+        for (const Particle& p : m_particles) {
+            const float alpha = p.life / p.maxLife;
+            sf::Color c = p.color;
+            c.a = static_cast<sf::Uint8>(alpha * 220.f);
+            chip.setFillColor(c);
+            chip.setPosition(p.pos - sf::Vector2f(2.f, 2.f));
+            target.draw(chip);
+        }
+    }
 
     // HUD is always in screen-space — reset view before drawing it.
     target.setView(original);

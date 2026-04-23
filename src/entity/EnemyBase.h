@@ -25,6 +25,9 @@ public:
     int  lastHitSwing() const        { return m_lastHitSwing; }
     void setLastHitSwing(int swingId) { m_lastHitSwing = swingId; }
 
+    // Returns the enemy's base body colour — used by the particle system on death.
+    virtual sf::Color normalColor() const = 0;
+
     // Called by GameScene before world.update() — subclass sets m_moveVel.
     virtual void seek(sf::Vector2f playerPos) = 0;
 
@@ -39,8 +42,7 @@ protected:
     // Apply `c` to the subclass's drawable (used by the flash system).
     virtual void setBodyColor(sf::Color c) = 0;
 
-    virtual sf::Color normalColor() const = 0;
-    virtual sf::Color hitColor()    const { return sf::Color(255, 230, 230); }
+    virtual sf::Color hitColor() const { return sf::Color(255, 230, 230); }
 
     float        m_radius;
     int          m_maxHp;
