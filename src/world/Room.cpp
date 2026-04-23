@@ -10,6 +10,8 @@ namespace {
     const sf::Color kFloorColor    = sf::Color(28, 22, 36);
     const sf::Color kWallColor     = sf::Color(55, 42, 70);
     const sf::Color kWallEdge      = sf::Color(90, 68, 110);
+    const sf::Color kGridColor     = sf::Color(48, 38, 60, 90);  // subtle purple tint
+    constexpr float kTileSize      = 80.f;
 }
 
 Room::Room(sf::Vector2f topLeft, sf::Vector2f size)
@@ -44,6 +46,28 @@ void Room::buildGeometry()
     m_floor.setSize({ w - 2.f * t, h - 2.f * t });
     m_floor.setFillColor(kFloorColor);
 
+    // Build grid lines spanning the inner floor area.
+    {
+        const float fx0 = x + t;
+        const float fy0 = y + t;
+        const float fx1 = x + w - t;
+        const float fy1 = y + h - t;
+
+        m_grid.clear();
+        m_grid.setPrimitiveType(sf::Lines);
+
+        // Vertical lines.
+        for (float lx = fx0 + kTileSize; lx < fx1; lx += kTileSize) {
+            m_grid.append({ { lx, fy0 }, kGridColor });
+            m_grid.append({ { lx, fy1 }, kGridColor });
+        }
+        // Horizontal lines.
+        for (float ly = fy0 + kTileSize; ly < fy1; ly += kTileSize) {
+            m_grid.append({ { fx0, ly }, kGridColor });
+            m_grid.append({ { fx1, ly }, kGridColor });
+        }
+    }
+
     auto makeWall = [&](sf::RectangleShape& wall,
                         sf::Vector2f pos, sf::Vector2f sz) {
         wall.setPosition(pos);
@@ -62,6 +86,7 @@ void Room::buildGeometry()
 void Room::render(sf::RenderTarget& target) const
 {
     target.draw(m_floor);
+    target.draw(m_grid);
     target.draw(m_wallN);
     target.draw(m_wallS);
     target.draw(m_wallW);

@@ -32,6 +32,7 @@ private:
     sf::Vector2f       m_topLeft;
     sf::Vector2f       m_size;
     sf::RectangleShape m_floor;
+    sf::VertexArray    m_grid;
     sf::RectangleShape m_wallN, m_wallS, m_wallW, m_wallE;
 };
 
