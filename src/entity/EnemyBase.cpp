@@ -72,6 +72,17 @@ void EnemyBase::update(float dt)
     m_knockback *= std::exp2(-dt / kKnockbackHalfLife);
 
     syncShape();
+
+    // Spawn pop: scale from 0 to 1 with a brief overshoot.
+    if (m_spawnTimer < kSpawnDuration) {
+        m_spawnTimer += dt;
+        const float t = std::min(m_spawnTimer / kSpawnDuration, 1.f);
+        float scale;
+        constexpr float kPeak = 0.65f;
+        if (t < kPeak) scale = (t / kPeak) * 1.25f;
+        else           scale = 1.25f - 0.25f * ((t - kPeak) / (1.f - kPeak));
+        setBodyScale(scale);
+    }
 }
 
 } // namespace hollow

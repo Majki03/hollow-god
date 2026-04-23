@@ -18,6 +18,7 @@ public:
 protected:
     void      syncShape()               override { m_body.setPosition(m_position); }
     void      setBodyColor(sf::Color c) override { m_body.setFillColor(c); }
+    void      setBodyScale(float s)     override { m_body.setScale(s, s); }
     sf::Color normalColor()             const override { return sf::Color(90, 20, 60); }
     sf::Color hitColor()                const override { return sf::Color(255, 200, 240); }
 

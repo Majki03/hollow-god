@@ -15,9 +15,10 @@ public:
     void render(sf::RenderTarget& target) const override;
 
 protected:
-    void      syncShape()            override { m_body.setPosition(m_position); }
+    void      syncShape()               override { m_body.setPosition(m_position); }
     void      setBodyColor(sf::Color c) override { m_body.setFillColor(c); }
-    sf::Color normalColor()          const override { return sf::Color(150, 40, 40); }
+    void      setBodyScale(float s)     override { m_body.setScale(s, s); }
+    sf::Color normalColor()             const override { return sf::Color(150, 40, 40); }
 
 private:
     sf::RectangleShape m_body;

@@ -42,7 +42,9 @@ protected:
     // Apply `c` to the subclass's drawable (used by the flash system).
     virtual void setBodyColor(sf::Color c) = 0;
 
-    virtual sf::Color hitColor() const { return sf::Color(255, 230, 230); }
+    virtual sf::Color hitColor()    const { return sf::Color(255, 230, 230); }
+    // Set the drawable's scale (used for the spawn pop animation).
+    virtual void setBodyScale(float s) = 0;
 
     float        m_radius;
     int          m_maxHp;
@@ -51,9 +53,11 @@ protected:
     sf::Vector2f m_moveVel{};   // set fresh by seek() each frame
     int          m_lastHitSwing = -1;
     float        m_flashTimer   = 0.f;
+    float        m_spawnTimer   = 0.f;
 
     static constexpr float kKnockbackHalfLife = 0.10f;
     static constexpr float kFlashDuration     = 0.08f;
+    static constexpr float kSpawnDuration     = 0.20f;
 };
 
 } // namespace hollow
