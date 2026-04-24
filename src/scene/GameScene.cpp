@@ -174,6 +174,25 @@ void GameScene::update(float dt)
     }
     std::erase_if(m_particles, [](const Particle& p) { return p.life <= 0.f; });
 
+    // Emit dash trail particles at the origin of a dash.
+    if (m_player->consumeDashEvent()) {
+        const sf::Color trailColor(200, 195, 230);
+        constexpr int kTrailCount = 8;
+        std::uniform_real_distribution<float> rAngle(0.f, 6.2832f);
+        std::uniform_real_distribution<float> rSpeed(30.f, 110.f);
+        std::uniform_real_distribution<float> rLife(0.12f, 0.28f);
+        for (int i = 0; i < kTrailCount; ++i) {
+            const float a = rAngle(m_rng), s = rSpeed(m_rng), l = rLife(m_rng);
+            Particle p;
+            p.pos     = m_player->dashOrigin();
+            p.vel     = { std::cos(a) * s, std::sin(a) * s };
+            p.life    = l;
+            p.maxLife = l;
+            p.color   = trailColor;
+            m_particles.push_back(p);
+        }
+    }
+
     // Poll archers for pending shots and spawn projectiles.
     for (Archer* a : m_archers) {
         if (!a->alive()) continue;

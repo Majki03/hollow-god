@@ -136,6 +136,8 @@ void Player::update(float dt)
     m_position += m_velocity * dt;
     m_body.setPosition(m_position);
 
+    m_dashedThisFrame = false;
+
     // Dash — teleport in move direction (or aim direction if stationary).
     if (m_actions.justPressed(Action::Dash) && m_dashCooldown <= 0.f) {
         sf::Vector2f dashDir{};
@@ -145,9 +147,11 @@ void Player::update(float dt)
         } else {
             dashDir = { std::cos(m_aimAngle), std::sin(m_aimAngle) };
         }
-        m_position      += dashDir * m_stats.dashDist;
-        m_dashCooldown   = m_stats.dashCooldown;
-        m_iframeTimer    = std::max(m_iframeTimer, 0.20f); // brief invulnerability
+        m_dashOrigin      = m_position;
+        m_position       += dashDir * m_stats.dashDist;
+        m_dashCooldown    = m_stats.dashCooldown;
+        m_iframeTimer     = std::max(m_iframeTimer, 0.20f);
+        m_dashedThisFrame = true;
         m_body.setPosition(m_position);
     }
 

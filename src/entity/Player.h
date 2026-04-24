@@ -39,6 +39,10 @@ public:
     float dashCooldownRemaining() const { return m_dashCooldown; }
     float dashCooldownMax()       const { return m_stats.dashCooldown; }
 
+    // True for exactly one frame after a dash fires; read and consumed by GameScene.
+    bool consumeDashEvent() { if (!m_dashedThisFrame) return false; m_dashedThisFrame = false; return true; }
+    sf::Vector2f dashOrigin() const { return m_dashOrigin; } // position before last dash
+
     const PlayerStats& stats()        const { return m_stats; }
     PlayerStats&       mutableStats()       { return m_stats; }
 
@@ -65,9 +69,11 @@ private:
     float        m_attackTimer = 0.f;
     int          m_swingId     = 0;
 
-    int   m_hp           = 0;   // set to m_stats.maxHp in ctor body
-    float m_iframeTimer  = 0.f;
-    float m_dashCooldown = 0.f;
+    int          m_hp             = 0;
+    float        m_iframeTimer   = 0.f;
+    float        m_dashCooldown  = 0.f;
+    bool         m_dashedThisFrame = false;
+    sf::Vector2f m_dashOrigin{};
 
     const InputState& m_input;
     const ActionMap&  m_actions;
