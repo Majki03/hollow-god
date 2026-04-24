@@ -163,6 +163,12 @@ void BoonSelectionScene::applyBoon(const Boon& boon)
     case BoonEffect::OnKillHealUp:
         s.onKillHeal += v;
         break;
+    case BoonEffect::DashCooldownDown:
+        s.dashCooldown = std::max(0.20f, s.dashCooldown - boon.value);
+        break;
+    case BoonEffect::DashDistUp:
+        s.dashDist += boon.value;
+        break;
     }
 }
 

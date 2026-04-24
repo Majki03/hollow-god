@@ -13,14 +13,16 @@ enum class BoonSchool {
 };
 
 enum class BoonEffect {
-    MaxHpUp,        // +value to PlayerStats::maxHp (also heals that amount)
-    HealNow,        // instantly restore value HP
-    DmgReduceUp,    // +value to PlayerStats::dmgReduce
-    SwingDmgUp,     // +value to PlayerStats::swingDamage
-    KnockbackUp,    // +value to PlayerStats::knockback
-    MoveSpeedUp,    // +value to PlayerStats::moveSpeed
-    IFrameUp,       // +value to PlayerStats::iframeDur
-    OnKillHealUp,   // +value to PlayerStats::onKillHeal
+    MaxHpUp,           // +value to PlayerStats::maxHp (also heals that amount)
+    HealNow,           // instantly restore value HP
+    DmgReduceUp,       // +value to PlayerStats::dmgReduce
+    SwingDmgUp,        // +value to PlayerStats::swingDamage
+    KnockbackUp,       // +value to PlayerStats::knockback
+    MoveSpeedUp,       // +value to PlayerStats::moveSpeed
+    IFrameUp,          // +value to PlayerStats::iframeDur
+    OnKillHealUp,      // +value to PlayerStats::onKillHeal
+    DashCooldownDown,  // -value to PlayerStats::dashCooldown (faster recharge)
+    DashDistUp,        // +value to PlayerStats::dashDist (longer dash)
 };
 
 struct Boon {

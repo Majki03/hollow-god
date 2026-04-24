@@ -16,14 +16,16 @@ static constexpr Boon kBoons[] = {
     { "Bloodlust",      "Kill heals 5 HP",           BoonSchool::Wrath,     BoonEffect::OnKillHealUp,  5.f },
 
     // ── Swiftness ────────────────────────────────────────────────────────
-    { "Fleet Step",     "Move speed +40",            BoonSchool::Swiftness, BoonEffect::MoveSpeedUp,  40.f },
-    { "Ghost Step",     "I-frames +0.30 s",          BoonSchool::Swiftness, BoonEffect::IFrameUp,      0.30f },
-    { "Surge",          "Move speed +25",            BoonSchool::Swiftness, BoonEffect::MoveSpeedUp,  25.f },
+    { "Fleet Step",     "Move speed +40",            BoonSchool::Swiftness, BoonEffect::MoveSpeedUp,       40.f  },
+    { "Ghost Step",     "I-frames +0.30 s",          BoonSchool::Swiftness, BoonEffect::IFrameUp,           0.30f },
+    { "Surge",          "Move speed +25",            BoonSchool::Swiftness, BoonEffect::MoveSpeedUp,       25.f  },
+    { "Blink",          "Dash distance +60",         BoonSchool::Swiftness, BoonEffect::DashDistUp,        60.f  },
+    { "Quick Step",     "Dash cooldown -0.20 s",     BoonSchool::Swiftness, BoonEffect::DashCooldownDown,   0.20f },
 
     // ── Dominion ─────────────────────────────────────────────────────────
-    { "Void Echo",      "Kill heals 8 HP",           BoonSchool::Dominion,  BoonEffect::OnKillHealUp,  8.f },
-    { "Fracture",       "Swing damage +4",           BoonSchool::Dominion,  BoonEffect::SwingDmgUp,    4.f },
-    { "Spectral Hide",  "Reduce damage taken by 2",  BoonSchool::Dominion,  BoonEffect::DmgReduceUp,   2.f },
+    { "Void Echo",      "Kill heals 8 HP",           BoonSchool::Dominion,  BoonEffect::OnKillHealUp,       8.f  },
+    { "Fracture",       "Swing damage +4",           BoonSchool::Dominion,  BoonEffect::SwingDmgUp,         4.f  },
+    { "Spectral Hide",  "Reduce damage taken by 2",  BoonSchool::Dominion,  BoonEffect::DmgReduceUp,        2.f  },
 };
 
 std::span<const Boon> BoonPool::all()
