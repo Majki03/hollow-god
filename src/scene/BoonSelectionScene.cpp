@@ -1,5 +1,6 @@
 #include "scene/BoonSelectionScene.h"
 
+#include "audio/AudioSystem.h"
 #include "boon/BoonPool.h"
 #include "core/SceneContext.h"
 #include "core/TextUtil.h"
@@ -127,6 +128,7 @@ void BoonSelectionScene::update(float dt)
     }
     if (m_ctx.actions.justPressed(Action::Confirm) ||
         m_ctx.actions.justPressed(Action::Attack)) {
+        m_ctx.audio.play(Sfx::BoonPick);
         applyBoon(*m_choices[m_selected]);
         m_ctx.scenes.pop();
     }

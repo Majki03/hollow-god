@@ -63,6 +63,7 @@ private:
     float                   m_shakeTrauma = 0.f;
     float                   m_hitStop     = 0.f;   // remaining freeze time after a kill
     int                     m_prevHp      = 0;     // detect damage this frame for shake trigger
+    int                     m_prevSwingId = 0;     // detect new swing for SFX trigger
     std::mt19937            m_rng;
 };
 

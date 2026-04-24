@@ -1,5 +1,6 @@
 #include "scene/GameScene.h"
 
+#include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "entity/Archer.h"
 #include "entity/Brute.h"
@@ -129,6 +130,7 @@ void GameScene::onEnter()
     if (m_boonPending) {
         m_boonPending = false;
         spawnWave();
+        m_ctx.audio.play(Sfx::WaveStart);
     }
 }
 
@@ -179,8 +181,15 @@ void GameScene::update(float dt)
     }
     std::erase_if(m_particles, [](const Particle& p) { return p.life <= 0.f; });
 
+    // New swing this frame — sound plays at animation start, before hitbox opens.
+    if (m_player->swingId() != m_prevSwingId) {
+        m_prevSwingId = m_player->swingId();
+        m_ctx.audio.play(Sfx::Swing);
+    }
+
     // Emit dash trail particles at the origin of a dash.
     if (m_player->consumeDashEvent()) {
+        m_ctx.audio.play(Sfx::Dash);
         const sf::Color trailColor(200, 195, 230);
         constexpr int kTrailCount = 8;
         std::uniform_real_distribution<float> rAngle(0.f, 6.2832f);
@@ -222,6 +231,7 @@ void GameScene::update(float dt)
     m_hud.update(*m_player, m_wave, m_kills);
 
     if (!m_player->alive()) {
+        m_ctx.audio.play(Sfx::PlayerDeath);
         m_ctx.scenes.push(std::make_unique<DeathScene>(m_ctx, m_wave, m_kills));
         return;
     }
@@ -243,6 +253,7 @@ void GameScene::update(float dt)
                 std::make_unique<BoonSelectionScene>(m_ctx, *m_player));
         } else {
             spawnWave();
+            m_ctx.audio.play(Sfx::WaveStart);
         }
     }
 }
@@ -298,8 +309,11 @@ void GameScene::resolveCombat()
                 ++m_kills;
                 m_hitStop = std::max(m_hitStop, 0.055f);
                 emitDeathParticles(e->position(), e->normalColor());
+                m_ctx.audio.play(Sfx::EnemyDeath);
                 if (m_player->stats().onKillHeal > 0)
                     m_player->healBy(m_player->stats().onKillHeal);
+            } else {
+                m_ctx.audio.play(Sfx::Hit);
             }
         }
     }
@@ -338,7 +352,8 @@ void GameScene::resolveProjectiles()
         if (!p->alive()) continue;
         if (physics::circlesOverlap(m_player->position(), kPlayerR,
                                     p->position(),        p->radius())) {
-            m_player->damage(Player::kContactDamage);
+            if (m_player->damage(Player::kContactDamage))
+                m_ctx.audio.play(Sfx::PlayerHit);
             p->kill();
         }
     }
@@ -350,7 +365,8 @@ void GameScene::resolveEnemyContact()
         if (!e->alive()) continue;
         if (physics::circlesOverlap(m_player->position(), kPlayerR,
                                     e->position(),         e->radius())) {
-            m_player->damage(Player::kContactDamage);
+            if (m_player->damage(Player::kContactDamage))
+                m_ctx.audio.play(Sfx::PlayerHit);
         }
     }
 }
