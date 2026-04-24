@@ -97,10 +97,14 @@ void Player::confine(sf::Vector2f mn, sf::Vector2f mx)
 
 void Player::update(float dt)
 {
-    if (m_iframeTimer > 0.f) {
-        m_iframeTimer -= dt;
-        const bool visible = static_cast<int>(m_iframeTimer / 0.1f) % 2 == 0;
-        m_body.setFillColor(visible ? sf::Color(230, 228, 240) : sf::Color(230, 228, 240, 80));
+    if (m_iframeTimer  > 0.f) m_iframeTimer  -= dt;
+    if (m_dashCooldown > 0.f) m_dashCooldown -= dt;
+
+    {
+        const bool visible = m_iframeTimer <= 0.f ||
+                             static_cast<int>(m_iframeTimer / 0.1f) % 2 == 0;
+        m_body.setFillColor(visible ? sf::Color(230, 228, 240)
+                                    : sf::Color(230, 228, 240, 80));
     }
 
     sf::Vector2f wish{};
@@ -131,6 +135,21 @@ void Player::update(float dt)
 
     m_position += m_velocity * dt;
     m_body.setPosition(m_position);
+
+    // Dash — teleport in move direction (or aim direction if stationary).
+    if (m_actions.justPressed(Action::Dash) && m_dashCooldown <= 0.f) {
+        sf::Vector2f dashDir{};
+        if (wishLen2 > 0.f) {
+            const float inv = 1.f / std::sqrt(wishLen2);
+            dashDir = { wish.x * inv, wish.y * inv };
+        } else {
+            dashDir = { std::cos(m_aimAngle), std::sin(m_aimAngle) };
+        }
+        m_position      += dashDir * m_stats.dashDist;
+        m_dashCooldown   = m_stats.dashCooldown;
+        m_iframeTimer    = std::max(m_iframeTimer, 0.20f); // brief invulnerability
+        m_body.setPosition(m_position);
+    }
 
     const auto mouse = m_input.mousePosition();
     m_aimAngle = std::atan2(mouse.y - m_position.y, mouse.x - m_position.x);

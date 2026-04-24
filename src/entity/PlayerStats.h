@@ -6,7 +6,9 @@ namespace hollow {
 // accumulate changes here for the duration of a run.
 struct PlayerStats {
     // Movement
-    float moveSpeed   = 260.f;
+    float moveSpeed    = 260.f;
+    float dashDist     = 140.f;  // teleport distance per dash
+    float dashCooldown = 0.80f;  // seconds between dashes
 
     // Durability
     int   maxHp       = 100;

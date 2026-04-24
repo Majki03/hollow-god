@@ -21,16 +21,21 @@ public:
 private:
     sf::RectangleShape m_barBg;
     sf::RectangleShape m_barFill;
+    sf::RectangleShape m_dashBg;
+    sf::RectangleShape m_dashFill;
     sf::Text           m_hpLabel;
+    sf::Text           m_dashLabel;
     sf::Text           m_waveLabel;
     sf::Text           m_killLabel;
 
-    static constexpr float kBarW = 200.f;
-    static constexpr float kBarH =  14.f;
-    static constexpr float kPadX =  20.f;
-    static constexpr float kPadY =  20.f;
-    static constexpr float kWinW = 1280.f;
-    static constexpr float kWinH =  720.f;
+    static constexpr float kBarW  = 200.f;
+    static constexpr float kBarH  =  14.f;
+    static constexpr float kDashW =  80.f;
+    static constexpr float kDashH =   6.f;
+    static constexpr float kPadX  =  20.f;
+    static constexpr float kPadY  =  20.f;
+    static constexpr float kWinW  = 1280.f;
+    static constexpr float kWinH  =  720.f;
 };
 
 } // namespace hollow

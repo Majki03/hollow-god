@@ -35,6 +35,10 @@ public:
     int  hp()    const { return m_hp; }
     int  maxHp() const { return m_stats.maxHp; }
 
+    // Dash cooldown queries (used by HUD).
+    float dashCooldownRemaining() const { return m_dashCooldown; }
+    float dashCooldownMax()       const { return m_stats.dashCooldown; }
+
     const PlayerStats& stats()        const { return m_stats; }
     PlayerStats&       mutableStats()       { return m_stats; }
 
@@ -61,8 +65,9 @@ private:
     float        m_attackTimer = 0.f;
     int          m_swingId     = 0;
 
-    int   m_hp          = 0;   // set to m_stats.maxHp in ctor body
-    float m_iframeTimer = 0.f;
+    int   m_hp           = 0;   // set to m_stats.maxHp in ctor body
+    float m_iframeTimer  = 0.f;
+    float m_dashCooldown = 0.f;
 
     const InputState& m_input;
     const ActionMap&  m_actions;
