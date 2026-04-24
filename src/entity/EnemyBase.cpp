@@ -14,6 +14,12 @@ EnemyBase::EnemyBase(sf::Vector2f position, float radius, int maxHp)
     , m_hp(maxHp)
 {}
 
+void EnemyBase::scaleHp(float factor)
+{
+    m_maxHp = std::max(1, static_cast<int>(m_maxHp * factor));
+    m_hp    = m_maxHp;
+}
+
 void EnemyBase::damage(int amount)
 {
     m_hp -= amount;

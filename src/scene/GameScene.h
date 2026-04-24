@@ -38,7 +38,7 @@ private:
     };
 
     template<typename T>
-    void spawnEnemy(sf::Vector2f position);
+    void spawnEnemy(sf::Vector2f position, float hpScale = 1.f);
 
     void spawnWave();
     void resolveCombat();

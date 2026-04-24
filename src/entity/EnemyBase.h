@@ -14,6 +14,9 @@ class EnemyBase : public Entity {
 public:
     EnemyBase(sf::Vector2f position, float radius, int maxHp);
 
+    // Call once after construction to multiply base HP by a difficulty factor.
+    void scaleHp(float factor);
+
     void damage(int amount);
     void applyImpulse(sf::Vector2f impulse);
     void confine(sf::Vector2f min, sf::Vector2f max);

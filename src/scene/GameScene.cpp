@@ -51,27 +51,29 @@ GameScene::GameScene(SceneContext& ctx)
 }
 
 template<typename T>
-void GameScene::spawnEnemy(sf::Vector2f position)
+void GameScene::spawnEnemy(sf::Vector2f position, float hpScale)
 {
     auto e = std::make_unique<T>(position);
+    if (hpScale != 1.f) e->scaleHp(hpScale);
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
 }
 
 // Specialisation: Archer also gets tracked in m_archers for shot polling.
 template<>
-void GameScene::spawnEnemy<Archer>(sf::Vector2f position)
+void GameScene::spawnEnemy<Archer>(sf::Vector2f position, float hpScale)
 {
     auto e = std::make_unique<Archer>(position);
+    if (hpScale != 1.f) e->scaleHp(hpScale);
     m_archers.push_back(e.get());
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
 }
 
 // Explicit instantiations so the template body doesn't need to live in the header.
-template void GameScene::spawnEnemy<Grunt>(sf::Vector2f);
-template void GameScene::spawnEnemy<Charger>(sf::Vector2f);
-template void GameScene::spawnEnemy<Brute>(sf::Vector2f);
+template void GameScene::spawnEnemy<Grunt>(sf::Vector2f, float);
+template void GameScene::spawnEnemy<Charger>(sf::Vector2f, float);
+template void GameScene::spawnEnemy<Brute>(sf::Vector2f, float);
 
 void GameScene::spawnWave()
 {
@@ -110,10 +112,13 @@ void GameScene::spawnWave()
         return pos;
     };
 
-    for (int i = 0; i < layout.grunts;   ++i) spawnEnemy<Grunt>  (pickPos());
-    for (int i = 0; i < layout.chargers; ++i) spawnEnemy<Charger>(pickPos());
-    for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos());
-    for (int i = 0; i < layout.archers;  ++i) spawnEnemy<Archer> (pickPos());
+    // HP scales up every 2 waves: wave 1-2 = 1.0×, wave 3-4 = 1.25×, wave 5-6 = 1.5×, …
+    const float hpScale = 1.f + 0.25f * static_cast<float>((m_wave - 1) / 2);
+
+    for (int i = 0; i < layout.grunts;   ++i) spawnEnemy<Grunt>  (pickPos(), hpScale);
+    for (int i = 0; i < layout.chargers; ++i) spawnEnemy<Charger>(pickPos(), hpScale);
+    for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos(), hpScale);
+    for (int i = 0; i < layout.archers;  ++i) spawnEnemy<Archer> (pickPos(), hpScale);
 }
 
 void GameScene::onEnter()
