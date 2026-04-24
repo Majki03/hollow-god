@@ -25,6 +25,7 @@ FetchContent_MakeAvailable(SFML)
 add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
+    src/audio/AudioSystem.cpp
     src/boon/BoonPool.cpp
     src/entity/Archer.cpp
     src/entity/Brute.cpp

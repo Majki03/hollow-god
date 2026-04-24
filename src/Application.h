@@ -1,5 +1,6 @@
 #pragma once
 
+#include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "input/ActionMap.h"
 #include "input/InputState.h"
@@ -29,6 +30,7 @@ private:
     SceneStack       m_scenes;
     TextureCache     m_textures;
     FontCache        m_fonts;
+    AudioSystem      m_audio;
     SceneContext     m_ctx;
 };
 

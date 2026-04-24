@@ -8,6 +8,7 @@ namespace sf { class RenderWindow; }
 
 namespace hollow {
 
+class AudioSystem;
 class InputState;
 class ActionMap;
 class SceneStack;
@@ -23,7 +24,8 @@ struct SceneContext {
     FontCache&        fonts;
     // Key into fonts cache. Empty string means no font was loaded; scenes must
     // guard all sf::Text usage behind !fontKey.empty().
-    std::string fontKey;
+    std::string  fontKey;
+    AudioSystem& audio;
 };
 
 } // namespace hollow
