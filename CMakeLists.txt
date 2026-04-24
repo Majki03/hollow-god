@@ -26,10 +26,12 @@ add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
     src/boon/BoonPool.cpp
+    src/entity/Archer.cpp
     src/entity/Brute.cpp
     src/entity/Charger.cpp
     src/entity/EnemyBase.cpp
     src/entity/Grunt.cpp
+    src/entity/Projectile.cpp
     src/hud/Hud.cpp
     src/entity/Player.cpp
     src/input/ActionMap.cpp

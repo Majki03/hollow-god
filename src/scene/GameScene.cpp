@@ -1,11 +1,13 @@
 #include "scene/GameScene.h"
 
 #include "core/SceneContext.h"
+#include "entity/Archer.h"
 #include "entity/Brute.h"
 #include "entity/Charger.h"
 #include "entity/EnemyBase.h"
 #include "entity/Grunt.h"
 #include "entity/Player.h"
+#include "entity/Projectile.h"
 #include "hud/Hud.h"
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
@@ -56,6 +58,16 @@ void GameScene::spawnEnemy(sf::Vector2f position)
     m_world.add(std::move(e));
 }
 
+// Specialisation: Archer also gets tracked in m_archers for shot polling.
+template<>
+void GameScene::spawnEnemy<Archer>(sf::Vector2f position)
+{
+    auto e = std::make_unique<Archer>(position);
+    m_archers.push_back(e.get());
+    m_enemies.push_back(e.get());
+    m_world.add(std::move(e));
+}
+
 // Explicit instantiations so the template body doesn't need to live in the header.
 template void GameScene::spawnEnemy<Grunt>(sf::Vector2f);
 template void GameScene::spawnEnemy<Charger>(sf::Vector2f);
@@ -65,15 +77,16 @@ void GameScene::spawnWave()
 {
     ++m_wave;
 
-    // Wave composition: each entry is {grunts, chargers, brutes}.
+    // Wave composition: {grunts, chargers, brutes, archers}.
     // Waves beyond the table repeat the last row.
-    struct WaveLayout { int grunts; int chargers; int brutes; };
+    struct WaveLayout { int grunts; int chargers; int brutes; int archers; };
     static constexpr WaveLayout kLayouts[] = {
-        { 1, 0, 0 }, // wave 1
-        { 1, 1, 0 }, // wave 2
-        { 2, 1, 0 }, // wave 3
-        { 2, 1, 1 }, // wave 4
-        { 2, 2, 1 }, // wave 5+
+        { 1, 0, 0, 0 }, // wave 1
+        { 1, 1, 0, 0 }, // wave 2
+        { 2, 1, 0, 1 }, // wave 3
+        { 2, 1, 1, 1 }, // wave 4
+        { 2, 2, 1, 1 }, // wave 5
+        { 2, 2, 1, 2 }, // wave 6+
     };
     const auto& layout = kLayouts[std::min(m_wave - 1,
         static_cast<int>(std::size(kLayouts)) - 1)];
@@ -100,6 +113,7 @@ void GameScene::spawnWave()
     for (int i = 0; i < layout.grunts;   ++i) spawnEnemy<Grunt>  (pickPos());
     for (int i = 0; i < layout.chargers; ++i) spawnEnemy<Charger>(pickPos());
     for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos());
+    for (int i = 0; i < layout.archers;  ++i) spawnEnemy<Archer> (pickPos());
 }
 
 void GameScene::onEnter()
@@ -160,8 +174,19 @@ void GameScene::update(float dt)
     }
     std::erase_if(m_particles, [](const Particle& p) { return p.life <= 0.f; });
 
+    // Poll archers for pending shots and spawn projectiles.
+    for (Archer* a : m_archers) {
+        if (!a->alive()) continue;
+        if (auto dir = a->pendingShot()) {
+            auto proj = std::make_unique<Projectile>(a->position(), *dir);
+            m_projectiles.push_back(proj.get());
+            m_world.add(std::move(proj));
+        }
+    }
+
     resolveCombat();
     resolveEnemyContact();
+    resolveProjectiles();
 
     // Trigger shake if the player just took a hit.
     if (!m_player->alive() || m_player->hp() < m_prevHp) {
@@ -177,7 +202,9 @@ void GameScene::update(float dt)
         return;
     }
 
-    std::erase_if(m_enemies, [](const EnemyBase* e) { return !e->alive(); });
+    std::erase_if(m_enemies,     [](const EnemyBase*  e) { return !e->alive(); });
+    std::erase_if(m_archers,     [](const Archer*     a) { return !a->alive(); });
+    std::erase_if(m_projectiles, [](const Projectile* p) { return !p->alive(); });
     m_world.pruneDead();
 
     if (m_enemies.empty() && !m_boonPending) {
@@ -277,6 +304,18 @@ void GameScene::separateEnemies()
                 a->applyImpulse( push);
                 b->applyImpulse(-push);
             }
+        }
+    }
+}
+
+void GameScene::resolveProjectiles()
+{
+    for (Projectile* p : m_projectiles) {
+        if (!p->alive()) continue;
+        if (physics::circlesOverlap(m_player->position(), kPlayerR,
+                                    p->position(),        p->radius())) {
+            m_player->damage(Player::kContactDamage);
+            p->kill();
         }
     }
 }

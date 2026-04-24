@@ -5,6 +5,8 @@
 #include "world/Room.h"
 #include "world/World.h"
 
+#include <optional>
+
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
@@ -13,8 +15,10 @@
 
 namespace hollow {
 
+class Archer;
 class EnemyBase;
 class Player;
+class Projectile;
 
 class GameScene : public Scene {
 public:
@@ -39,6 +43,7 @@ private:
     void spawnWave();
     void resolveCombat();
     void resolveEnemyContact();
+    void resolveProjectiles();
     void separateEnemies();
     void emitDeathParticles(sf::Vector2f pos, sf::Color color);
 
@@ -48,8 +53,10 @@ private:
     World                   m_world;
     Hud                     m_hud;
     Player*                 m_player = nullptr;
-    std::vector<EnemyBase*> m_enemies;
-    std::vector<Particle>   m_particles;
+    std::vector<EnemyBase*>  m_enemies;
+    std::vector<Archer*>     m_archers;     // subset of m_enemies that can fire
+    std::vector<Projectile*> m_projectiles;
+    std::vector<Particle>    m_particles;
     int                     m_wave        = 0;
     int                     m_kills       = 0;
     bool                    m_boonPending = false;
