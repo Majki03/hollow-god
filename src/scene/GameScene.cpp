@@ -2,6 +2,7 @@
 
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
+#include "data/DataStore.h"
 #include "entity/Archer.h"
 #include "entity/Brute.h"
 #include "entity/Charger.h"
@@ -51,48 +52,48 @@ GameScene::GameScene(SceneContext& ctx)
     spawnWave();
 }
 
-template<typename T>
-void GameScene::spawnEnemy(sf::Vector2f position, float hpScale)
+void GameScene::spawnGrunt(sf::Vector2f pos, float hpScale)
 {
-    auto e = std::make_unique<T>(position);
+    auto e = std::make_unique<Grunt>(pos, m_ctx.data.enemies.grunt);
     if (hpScale != 1.f) e->scaleHp(hpScale);
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
 }
 
-// Specialisation: Archer also gets tracked in m_archers for shot polling.
-template<>
-void GameScene::spawnEnemy<Archer>(sf::Vector2f position, float hpScale)
+void GameScene::spawnCharger(sf::Vector2f pos, float hpScale)
 {
-    auto e = std::make_unique<Archer>(position);
+    auto e = std::make_unique<Charger>(pos, m_ctx.data.enemies.charger);
+    if (hpScale != 1.f) e->scaleHp(hpScale);
+    m_enemies.push_back(e.get());
+    m_world.add(std::move(e));
+}
+
+void GameScene::spawnBrute(sf::Vector2f pos, float hpScale)
+{
+    auto e = std::make_unique<Brute>(pos, m_ctx.data.enemies.brute);
+    if (hpScale != 1.f) e->scaleHp(hpScale);
+    m_enemies.push_back(e.get());
+    m_world.add(std::move(e));
+}
+
+void GameScene::spawnArcher(sf::Vector2f pos, float hpScale)
+{
+    auto e = std::make_unique<Archer>(pos, m_ctx.data.enemies.archer);
     if (hpScale != 1.f) e->scaleHp(hpScale);
     m_archers.push_back(e.get());
     m_enemies.push_back(e.get());
     m_world.add(std::move(e));
 }
 
-// Explicit instantiations so the template body doesn't need to live in the header.
-template void GameScene::spawnEnemy<Grunt>(sf::Vector2f, float);
-template void GameScene::spawnEnemy<Charger>(sf::Vector2f, float);
-template void GameScene::spawnEnemy<Brute>(sf::Vector2f, float);
-
 void GameScene::spawnWave()
 {
     ++m_wave;
 
-    // Wave composition: {grunts, chargers, brutes, archers}.
-    // Waves beyond the table repeat the last row.
-    struct WaveLayout { int grunts; int chargers; int brutes; int archers; };
-    static constexpr WaveLayout kLayouts[] = {
-        { 1, 0, 0, 0 }, // wave 1
-        { 1, 1, 0, 0 }, // wave 2
-        { 2, 1, 0, 1 }, // wave 3
-        { 2, 1, 1, 1 }, // wave 4
-        { 2, 2, 1, 1 }, // wave 5
-        { 2, 2, 1, 2 }, // wave 6+
-    };
-    const auto& layout = kLayouts[std::min(m_wave - 1,
-        static_cast<int>(std::size(kLayouts)) - 1)];
+    // Wave composition read from data/waves.json; waves beyond the table repeat
+    // the last row, same as before — the data just lives in a file now.
+    const auto& layouts = m_ctx.data.waves.layouts;
+    const auto& layout  = layouts[std::min(
+        m_wave - 1, static_cast<int>(layouts.size()) - 1)];
 
     constexpr float kEdge    = 55.f;
     constexpr float kMinDist = 220.f;
@@ -113,13 +114,13 @@ void GameScene::spawnWave()
         return pos;
     };
 
-    // HP scales up every 2 waves: wave 1-2 = 1.0×, wave 3-4 = 1.25×, wave 5-6 = 1.5×, …
-    const float hpScale = 1.f + 0.25f * static_cast<float>((m_wave - 1) / 2);
+    const float scale = m_ctx.data.waves.hpScalePerTwoWaves;
+    const float hpScale = 1.f + scale * static_cast<float>((m_wave - 1) / 2);
 
-    for (int i = 0; i < layout.grunts;   ++i) spawnEnemy<Grunt>  (pickPos(), hpScale);
-    for (int i = 0; i < layout.chargers; ++i) spawnEnemy<Charger>(pickPos(), hpScale);
-    for (int i = 0; i < layout.brutes;   ++i) spawnEnemy<Brute>  (pickPos(), hpScale);
-    for (int i = 0; i < layout.archers;  ++i) spawnEnemy<Archer> (pickPos(), hpScale);
+    for (int i = 0; i < layout.grunts;   ++i) spawnGrunt  (pickPos(), hpScale);
+    for (int i = 0; i < layout.chargers; ++i) spawnCharger(pickPos(), hpScale);
+    for (int i = 0; i < layout.brutes;   ++i) spawnBrute  (pickPos(), hpScale);
+    for (int i = 0; i < layout.archers;  ++i) spawnArcher (pickPos(), hpScale);
 }
 
 void GameScene::onEnter()
@@ -242,8 +243,7 @@ void GameScene::update(float dt)
     m_world.pruneDead();
 
     if (m_enemies.empty() && !m_boonPending) {
-        constexpr int kVictoryWave = 10;
-        if (m_wave >= kVictoryWave) {
+        if (m_wave >= m_ctx.data.waves.victoryWave) {
             m_ctx.scenes.push(
                 std::make_unique<VictoryScene>(m_ctx, m_wave, m_player->hp(), m_kills));
         } else if (m_wave % 2 == 0) {

@@ -37,8 +37,10 @@ private:
         sf::Color    color;
     };
 
-    template<typename T>
-    void spawnEnemy(sf::Vector2f position, float hpScale = 1.f);
+    void spawnGrunt  (sf::Vector2f position, float hpScale);
+    void spawnCharger(sf::Vector2f position, float hpScale);
+    void spawnBrute  (sf::Vector2f position, float hpScale);
+    void spawnArcher (sf::Vector2f position, float hpScale);
 
     void spawnWave();
     void resolveCombat();

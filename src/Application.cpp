@@ -18,9 +18,11 @@ namespace {
 Application::Application()
     : m_window(sf::VideoMode(1280, 720), "The Hollow God")
     , m_actions(m_input)
-    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts, "", m_audio }
+    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts, "", m_audio, m_data }
 {
     m_window.setVerticalSyncEnabled(true);
+
+    m_data.load(HG_DATA_DIR);
 
     // Best-effort font load. Missing font means text is absent, not a crash.
     // TODO: bundle a proper font asset in assets/fonts/ and remove HG_DEV_FONT.

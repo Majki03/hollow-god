@@ -1,8 +1,8 @@
 #include "scene/BoonSelectionScene.h"
 
 #include "audio/AudioSystem.h"
-#include "boon/BoonPool.h"
 #include "core/SceneContext.h"
+#include "data/DataStore.h"
 #include "core/TextUtil.h"
 #include "entity/Player.h"
 #include "input/ActionMap.h"
@@ -55,8 +55,9 @@ BoonSelectionScene::BoonSelectionScene(SceneContext& ctx, Player& player)
     m_subheader.setOrigin(sb.left + sb.width * 0.5f, 0.f);
     m_subheader.setPosition(640.f, 170.f);
 
-    // Pick three distinct random boons.
-    auto pool = BoonPool::all();
+    // Pick three distinct random boons from the loaded pool.
+    // m_choices holds raw pointers into ctx.data.boons which is stable at runtime.
+    const auto& pool = ctx.data.boons;
     std::vector<int> indices(pool.size());
     std::iota(indices.begin(), indices.end(), 0);
 
@@ -102,13 +103,13 @@ void BoonSelectionScene::buildCards()
             const sf::Font& font = m_ctx.fonts.get(HG_DEV_FONT);
 
             c.name.setFont(font);
-            c.name.setString(std::string(boon.name));
+            c.name.setString(boon.name);
             c.name.setCharacterSize(kNameSize);
             c.name.setFillColor(sf::Color(240, 230, 210));
             c.name.setPosition({ x + 12.f, kCardY + kBarH + 14.f });
 
             c.tagline.setFont(font);
-            c.tagline.setString(std::string(boon.tagline));
+            c.tagline.setString(boon.tagline);
             c.tagline.setCharacterSize(kTaglineSize);
             c.tagline.setFillColor(sf::Color(160, 148, 130));
             c.tagline.setPosition({ x + 12.f, kCardY + kBarH + 42.f });

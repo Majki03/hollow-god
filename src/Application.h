@@ -2,6 +2,7 @@
 
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
+#include "data/DataStore.h"
 #include "input/ActionMap.h"
 #include "input/InputState.h"
 #include "resources/ResourceCache.h"
@@ -31,6 +32,7 @@ private:
     TextureCache     m_textures;
     FontCache        m_fonts;
     AudioSystem      m_audio;
+    DataStore        m_data;
     SceneContext     m_ctx;
 };
 

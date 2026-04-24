@@ -12,6 +12,7 @@ class AudioSystem;
 class InputState;
 class ActionMap;
 class SceneStack;
+struct DataStore;
 
 // Shared services bundle. Passed by reference into every Scene at construction
 // so scenes never reach for globals or know how the Application is wired.
@@ -26,6 +27,7 @@ struct SceneContext {
     // guard all sf::Text usage behind !fontKey.empty().
     std::string  fontKey;
     AudioSystem& audio;
+    DataStore&   data;
 };
 
 } // namespace hollow
