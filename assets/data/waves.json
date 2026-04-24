@@ -1,0 +1,12 @@
+{
+    "victoryWave":        10,
+    "hpScalePerTwoWaves": 0.25,
+    "layouts": [
+        { "grunts": 1, "chargers": 0, "brutes": 0, "archers": 0 },
+        { "grunts": 1, "chargers": 1, "brutes": 0, "archers": 0 },
+        { "grunts": 2, "chargers": 1, "brutes": 0, "archers": 1 },
+        { "grunts": 2, "chargers": 1, "brutes": 1, "archers": 1 },
+        { "grunts": 2, "chargers": 2, "brutes": 1, "archers": 1 },
+        { "grunts": 2, "chargers": 2, "brutes": 1, "archers": 2 }
+    ]
+}

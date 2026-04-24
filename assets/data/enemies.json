@@ -1,0 +1,28 @@
+{
+    "grunt": {
+        "radius":    18.0,
+        "maxHp":     20,
+        "moveSpeed": 110.0
+    },
+    "charger": {
+        "radius":      12.0,
+        "maxHp":       10,
+        "stalkSpeed":  75.0,
+        "chargeSpeed": 310.0,
+        "windupDur":   0.35,
+        "restDur":     0.55,
+        "chargeDist":  280.0
+    },
+    "brute": {
+        "radius":    28.0,
+        "maxHp":     50,
+        "moveSpeed": 60.0
+    },
+    "archer": {
+        "radius":        13.0,
+        "maxHp":         18,
+        "moveSpeed":     65.0,
+        "preferredDist": 290.0,
+        "fireInterval":  2.2
+    }
+}

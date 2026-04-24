@@ -22,11 +22,22 @@ FetchContent_Declare(SFML
 set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(SFML)
 
+# Single-header JSON library. Used for data-driven enemy stats, wave tables,
+# and boon definitions. Header-only — no compiled output of its own.
+FetchContent_Declare(nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+    GIT_SHALLOW    TRUE
+)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+set(JSON_Install    OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_executable(hollow_god
     src/main.cpp
     src/Application.cpp
     src/audio/AudioSystem.cpp
-    src/boon/BoonPool.cpp
+    src/data/DataStore.cpp
     src/entity/Archer.cpp
     src/entity/Brute.cpp
     src/entity/Charger.cpp
@@ -50,10 +61,11 @@ add_executable(hollow_god
 
 target_include_directories(hollow_god PRIVATE src)
 
-# Dev-only convenience: point at a font that ships with SFML's examples so we
-# don't need a bundled asset yet. Replace with a proper asset path before shipping.
+# Dev-only path shortcuts. Both point into the source tree so any checkout
+# works without a post-build copy step. Replace with relative paths when bundling.
 target_compile_definitions(hollow_god PRIVATE
     HG_DEV_FONT="${sfml_SOURCE_DIR}/examples/shader/resources/tuffy.ttf"
+    HG_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/data"
 )
 
 # SFML 2.6 headers trip -Wdeprecated-declarations on newer libc++
@@ -67,6 +79,7 @@ target_link_libraries(hollow_god PRIVATE
     sfml-window
     sfml-system
     sfml-audio
+    nlohmann_json::nlohmann_json
 )
 
 if(MSVC)
