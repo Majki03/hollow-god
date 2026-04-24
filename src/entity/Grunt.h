@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data/DataStore.h"
 #include "entity/EnemyBase.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -9,7 +10,7 @@ namespace hollow {
 // Basic melee enemy — chases the player at a constant speed.
 class Grunt : public EnemyBase {
 public:
-    explicit Grunt(sf::Vector2f position);
+    Grunt(sf::Vector2f position, const GruntStats& stats);
 
     void seek(sf::Vector2f playerPos) override;
     void render(sf::RenderTarget& target) const override;
@@ -22,10 +23,7 @@ protected:
 
 private:
     sf::RectangleShape m_body;
-
-    static constexpr float kMoveSpeed = 110.f;
-    static constexpr float kRadius    = 18.f;
-    static constexpr int   kMaxHp     = 20;
+    GruntStats         m_stats;
 };
 
 } // namespace hollow

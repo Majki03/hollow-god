@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data/DataStore.h"
 #include "entity/EnemyBase.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
@@ -11,10 +12,10 @@ namespace hollow {
 // short burst. The brief windup pause telegraphs the charge so the player
 // has a window to dodge.
 //
-//  Stalk → Windup (0.35 s) → Charge (sprint to locked target) → Rest (0.55 s) → Stalk
+//  Stalk → Windup → Charge (sprint to locked target) → Rest → Stalk
 class Charger : public EnemyBase {
 public:
-    explicit Charger(sf::Vector2f position);
+    Charger(sf::Vector2f position, const ChargerStats& stats);
 
     void seek(sf::Vector2f playerPos) override;
     void render(sf::RenderTarget& target) const override;
@@ -28,19 +29,12 @@ protected:
 private:
     enum class State { Stalk, Windup, Charge, Rest };
 
+    ChargerStats m_stats;
     State        m_state      = State::Stalk;
     float        m_stateTimer = 0.f;
     sf::Vector2f m_chargeTarget{};  // locked when windup begins
 
     sf::CircleShape m_body;
-
-    static constexpr float kRadius      = 12.f;
-    static constexpr int   kMaxHp       = 10;
-    static constexpr float kStalkSpeed  = 75.f;
-    static constexpr float kChargeSpeed = 310.f;
-    static constexpr float kWindupDur   = 0.35f;
-    static constexpr float kRestDur     = 0.55f;
-    static constexpr float kChargeDist  = 280.f; // start charge within this range
 };
 
 } // namespace hollow

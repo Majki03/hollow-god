@@ -6,11 +6,12 @@
 
 namespace hollow {
 
-Charger::Charger(sf::Vector2f position)
-    : EnemyBase(position, kRadius, kMaxHp)
-    , m_body(kRadius)
+Charger::Charger(sf::Vector2f position, const ChargerStats& stats)
+    : EnemyBase(position, stats.radius, stats.maxHp)
+    , m_stats(stats)
+    , m_body(stats.radius)
 {
-    m_body.setOrigin(kRadius, kRadius);
+    m_body.setOrigin(stats.radius, stats.radius);
     m_body.setPosition(position);
     m_body.setFillColor(normalColor());
     m_body.setOutlineColor(sf::Color(120, 30, 0));
@@ -44,14 +45,13 @@ void Charger::seek(sf::Vector2f playerPos)
 
     switch (m_state) {
     case State::Stalk:
-        // Approach until close enough or until we've been stalking a while.
-        if (dist < kChargeDist) {
-            m_state      = State::Windup;
-            m_stateTimer = kWindupDur;
+        if (dist < m_stats.chargeDist) {
+            m_state        = State::Windup;
+            m_stateTimer   = m_stats.windupDur;
             m_chargeTarget = playerPos; // lock target at windup start
             setBodyColor(normalColor());
         } else if (dist > 0.f) {
-            m_moveVel = delta * (kStalkSpeed / dist);
+            m_moveVel = delta * (m_stats.stalkSpeed / dist);
         }
         break;
 
@@ -68,14 +68,12 @@ void Charger::seek(sf::Vector2f playerPos)
         sf::Vector2f chargeDir = m_chargeTarget - m_position;
         const float  cd2 = chargeDir.x * chargeDir.x + chargeDir.y * chargeDir.y;
         if (cd2 > 1.f) {
-            // Sprint toward locked target.
-            chargeDir *= kChargeSpeed / std::sqrt(cd2);
+            chargeDir *= m_stats.chargeSpeed / std::sqrt(cd2);
             m_moveVel  = chargeDir;
         } else {
-            // Reached the target — start resting.
             m_moveVel    = {};
             m_state      = State::Rest;
-            m_stateTimer = kRestDur;
+            m_stateTimer = m_stats.restDur;
             setBodyColor(normalColor());
         }
         break;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 
 namespace hollow {
 
@@ -26,11 +26,11 @@ enum class BoonEffect {
 };
 
 struct Boon {
-    std::string_view name;
-    std::string_view tagline;   // short description for the selection card
-    BoonSchool       school;
-    BoonEffect       effect;
-    float            value;     // magnitude; cast to int where the stat is int
+    std::string name;
+    std::string tagline;   // short description for the selection card
+    BoonSchool  school;
+    BoonEffect  effect;
+    float       value;     // magnitude; cast to int where the stat is int
 };
 
 } // namespace hollow

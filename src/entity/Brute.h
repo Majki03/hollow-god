@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data/DataStore.h"
 #include "entity/EnemyBase.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -10,7 +11,7 @@ namespace hollow {
 // Its size makes it hard to dodge in tight spaces.
 class Brute : public EnemyBase {
 public:
-    explicit Brute(sf::Vector2f position);
+    Brute(sf::Vector2f position, const BruteStats& stats);
 
     void seek(sf::Vector2f playerPos) override;
     void render(sf::RenderTarget& target) const override;
@@ -24,10 +25,7 @@ protected:
 
 private:
     sf::RectangleShape m_body;
-
-    static constexpr float kRadius    = 28.f;
-    static constexpr int   kMaxHp     = 50;
-    static constexpr float kMoveSpeed = 60.f;
+    BruteStats         m_stats;
 };
 
 } // namespace hollow
