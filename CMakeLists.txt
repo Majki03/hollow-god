@@ -39,6 +39,8 @@ add_executable(hollow_god
     src/audio/AudioSystem.cpp
     src/data/DataStore.cpp
     src/render/PostProcess.cpp
+    src/entity/weapon/BowWeapon.cpp
+    src/entity/weapon/SpearWeapon.cpp
     src/entity/weapon/SwordWeapon.cpp
     src/entity/Archer.cpp
     src/entity/Brute.cpp

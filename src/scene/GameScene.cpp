@@ -3,6 +3,8 @@
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "data/DataStore.h"
+#include "entity/weapon/BowWeapon.h"
+#include "entity/weapon/SpearWeapon.h"
 #include "entity/weapon/SwordWeapon.h"
 #include "render/PostProcess.h"
 #include "entity/Archer.h"
@@ -52,12 +54,32 @@ GameScene::GameScene(SceneContext& ctx, WeaponType weaponType)
         sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions);
     m_player = player.get();
 
-    // Weapon selection sets initial swingDamage / knockback so boons accumulate
-    // on top of the weapon's base values rather than the PlayerStats defaults.
-    const auto& s = ctx.data.weapons.sword;  // only sword exists this commit
-    player->setWeapon(std::make_unique<SwordWeapon>(s));
-    player->mutableStats().swingDamage = s.baseDamage;
-    player->mutableStats().knockback   = s.knockback;
+    // Set the chosen weapon and seed PlayerStats from its base values so that
+    // boon accumulation works on top of whatever the weapon brings.
+    switch (m_weaponType) {
+    case WeaponType::Sword: {
+        const auto& s = ctx.data.weapons.sword;
+        player->setWeapon(std::make_unique<SwordWeapon>(s));
+        player->mutableStats().swingDamage = s.baseDamage;
+        player->mutableStats().knockback   = s.knockback;
+        break;
+    }
+    case WeaponType::Bow: {
+        const auto& b = ctx.data.weapons.bow;
+        player->setWeapon(std::make_unique<BowWeapon>(b));
+        // Bow owns its own damage per-shot; swingDamage boons won't apply.
+        player->mutableStats().swingDamage = 0;
+        player->mutableStats().knockback   = 0.f;
+        break;
+    }
+    case WeaponType::Spear: {
+        const auto& sp = ctx.data.weapons.spear;
+        player->setWeapon(std::make_unique<SpearWeapon>(sp));
+        player->mutableStats().swingDamage = sp.baseDamage;
+        player->mutableStats().knockback   = sp.knockback;
+        break;
+    }
+    }
 
     m_world.add(std::move(player));
     spawnWave();
