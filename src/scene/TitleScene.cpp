@@ -3,8 +3,8 @@
 #include "core/SceneContext.h"
 #include "core/TextUtil.h"
 #include "input/ActionMap.h"
-#include "scene/GameScene.h"
 #include "scene/SceneStack.h"
+#include "scene/WeaponSelectScene.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -52,7 +52,7 @@ void TitleScene::update(float dt)
     m_prompt.setFillColor(c);
 
     if (m_ctx.actions.justPressed(Action::Confirm)) {
-        m_ctx.scenes.push(std::make_unique<GameScene>(m_ctx));
+        m_ctx.scenes.push(std::make_unique<WeaponSelectScene>(m_ctx));
     }
     if (m_ctx.actions.justPressed(Action::Back)) {
         m_ctx.window.close();
