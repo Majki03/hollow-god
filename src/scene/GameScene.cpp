@@ -18,6 +18,7 @@
 #include "input/ActionMap.h"
 #include "physics/Collision.h"
 #include "scene/BoonSelectionScene.h"
+#include "scene/CurseSelectionScene.h"
 #include "scene/DeathScene.h"
 #include "scene/PauseScene.h"
 #include "scene/SceneStack.h"
@@ -158,11 +159,19 @@ void GameScene::spawnWave()
 
 void GameScene::onEnter()
 {
-    // Called when GameScene becomes the top of the stack again — i.e. right
-    // after the BoonSelectionScene popped. Spawn the next wave here so the
-    // game is never left in an empty-but-waiting state.
-    if (m_boonPending) {
-        m_boonPending = false;
+    // Called whenever GameScene resurfaces (a pushed scene just popped).
+    // Two-stage sequence: CurseSelectionScene → BoonSelectionScene → spawnWave.
+    if (m_cursePending) {
+        // Curse scene just closed; now push the boon scene (Rare guaranteed
+        // if the player accepted a curse, i.e. m_rareGuaranteed == true).
+        m_cursePending = false;
+        m_boonPending  = true;
+        m_ctx.scenes.push(
+            std::make_unique<BoonSelectionScene>(m_ctx, *m_player, m_wave, m_rareGuaranteed));
+    } else if (m_boonPending) {
+        // Boon scene closed; reset flags and start the next wave.
+        m_boonPending    = false;
+        m_rareGuaranteed = false;
         spawnWave();
         m_ctx.audio.play(Sfx::WaveStart);
     }
@@ -311,18 +320,20 @@ void GameScene::update(float dt)
     std::erase_if(m_playerProjectiles,[](const Projectile* p) { return !p->alive(); });
     m_world.pruneDead();
 
-    if (m_enemies.empty() && !m_boonPending) {
+    if (m_enemies.empty() && !m_boonPending && !m_cursePending) {
         if (m_wave >= m_ctx.data.waves.victoryWave) {
             m_ctx.scenes.push(
                 std::make_unique<VictoryScene>(m_ctx, m_wave, m_player->hp(), m_kills));
-        } else if (m_wave % 2 == 0) {
-            // Offer a boon every 2 waves.
+        } else if (m_wave % 3 == 0) {
+            // Every third wave: curse offer first, then boon (Rare guaranteed on accept).
+            m_cursePending = true;
+            m_ctx.scenes.push(
+                std::make_unique<CurseSelectionScene>(m_ctx, *m_player, m_rareGuaranteed));
+        } else {
+            // Every other wave: boon immediately.
             m_boonPending = true;
             m_ctx.scenes.push(
-                std::make_unique<BoonSelectionScene>(m_ctx, *m_player));
-        } else {
-            spawnWave();
-            m_ctx.audio.play(Sfx::WaveStart);
+                std::make_unique<BoonSelectionScene>(m_ctx, *m_player, m_wave, m_rareGuaranteed));
         }
     }
 }
