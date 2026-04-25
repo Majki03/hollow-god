@@ -53,6 +53,7 @@ add_executable(hollow_god
     src/input/ActionMap.cpp
     src/input/InputState.cpp
     src/scene/BoonSelectionScene.cpp
+    src/scene/CurseSelectionScene.cpp
     src/scene/DeathScene.cpp
     src/scene/GameScene.cpp
     src/scene/PauseScene.cpp

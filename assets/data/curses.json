@@ -1,0 +1,7 @@
+[
+  { "name": "Heavy Burden",    "description": "Move speed -30",        "stat": "MoveSpeedUp",     "delta": -30.0 },
+  { "name": "Shattered Guard", "description": "I-frames -0.20 s",      "stat": "IFrameUp",        "delta": -0.20 },
+  { "name": "Cursed Flesh",    "description": "Max HP -20",            "stat": "MaxHpUp",         "delta": -20.0 },
+  { "name": "Leaden Step",     "description": "Dash cooldown +0.30 s", "stat": "DashCooldownDown","delta": -0.30 },
+  { "name": "Frail Strikes",   "description": "Swing damage -4",       "stat": "SwingDmgUp",      "delta": -4.0  }
+]

@@ -138,6 +138,27 @@ void loadBoons(DataStore& store, const std::string& dir)
     }
 }
 
+void loadCurses(DataStore& store, const std::string& dir)
+{
+    try {
+        auto j = openJson(dir + "/curses.json");
+        if (!j.is_array()) throw std::runtime_error("expected a JSON array");
+
+        store.curses.clear();
+        for (const auto& entry : j) {
+            DataStore::Curse c;
+            c.name        = entry.at("name").get<std::string>();
+            c.description = entry.at("description").get<std::string>();
+            c.stat        = parseEffect(entry.at("stat").get<std::string>());
+            c.delta       = entry.at("delta").get<float>();
+            store.curses.push_back(std::move(c));
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[DataStore] curses.json: " << e.what() << " — using defaults\n";
+        store.curses.clear();
+    }
+}
+
 void loadWeapons(DataStore& store, const std::string& dir)
 {
     try {
@@ -192,6 +213,7 @@ void DataStore::load(const std::string& dataDir)
     loadEnemies(*this, dataDir);
     loadWaves(*this, dataDir);
     loadBoons(*this, dataDir);
+    loadCurses(*this, dataDir);
     loadWeapons(*this, dataDir);
 }
 

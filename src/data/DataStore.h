@@ -104,6 +104,16 @@ struct DataStore {
     // because the vector is never modified again at runtime.
     std::vector<Boon> boons;
 
+    // Curses offered between every third wave. Accepting one guarantees a Rare
+    // boon on the immediately following draw.
+    struct Curse {
+        std::string name;
+        std::string description;
+        BoonEffect  stat;   // reuses BoonEffect — the stat that gets penalised
+        float       delta;  // always negative (debuff); applied as stat += delta
+    };
+    std::vector<Curse> curses;
+
     // Load JSON from dataDir/{enemies,waves,boons}.json.
     // Logs to stderr on parse failure and keeps defaults for that section.
     void load(const std::string& dataDir);
