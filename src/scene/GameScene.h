@@ -47,9 +47,11 @@ private:
     void resolveCombat();
     void resolveEnemyContact();
     void resolveProjectiles();
-    void separateEnemies();
     void resolvePlayerProjectiles();
+    void separateEnemies();
+    void applyVoidRush();          // Rare boon: AoE on dash origin
     void emitDeathParticles(sf::Vector2f pos, sf::Color color);
+    void handleKill(EnemyBase* e); // shared on-kill logic (heal, soul drain, etc.)
 
     void onEnter() override;
 
@@ -58,18 +60,24 @@ private:
     Hud                     m_hud;
     Player*                 m_player = nullptr;
     std::vector<EnemyBase*>  m_enemies;
-    std::vector<Archer*>     m_archers;     // subset of m_enemies that can fire
+    std::vector<Archer*>     m_archers;
     std::vector<Projectile*> m_projectiles;        // enemy shots
     std::vector<Projectile*> m_playerProjectiles;  // player weapon shots
     std::vector<Particle>    m_particles;
     WeaponType              m_weaponType;
-    int                     m_wave        = 0;
-    int                     m_kills       = 0;
-    bool                    m_boonPending = false;
-    float                   m_shakeTrauma = 0.f;
-    float                   m_hitStop     = 0.f;   // remaining freeze time after a kill
-    int                     m_prevHp      = 0;     // detect damage this frame for shake trigger
-    int                     m_prevSwingId = 0;     // detect new swing for SFX trigger
+    int                     m_wave          = 0;
+    int                     m_kills         = 0;
+    bool                    m_boonPending   = false;
+    bool                    m_cursePending  = false;
+    bool                    m_rareGuaranteed = false;
+    float                   m_shakeTrauma   = 0.f;
+    float                   m_hitStop       = 0.f;
+    int                     m_prevHp        = 0;
+    int                     m_prevSwingId   = 0;
+    // Rare boon active state
+    int                     m_spectralCount = 0;  // swings since last Spectral Volley
+    EnemyBase*              m_deathMarkTarget  = nullptr;
+    int                     m_deathMarkCount   = 0;
     std::mt19937            m_rng;
 };
 

@@ -7,6 +7,7 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 
@@ -60,6 +61,12 @@ public:
     bool damage(int amount);
     void healBy(int amount);
 
+    // Extend i-frame window to at least `duration` seconds (e.g. Soul Drain on kill).
+    void extendIframes(float duration) { m_iframeTimer = std::max(m_iframeTimer, duration); }
+
+    // Reduce current HP by amount, clamped to 1 (cannot kill, for curse/boon costs).
+    void loseHpDirect(int amount) { m_hp = std::max(1, m_hp - amount); }
+
     void confine(sf::Vector2f min, sf::Vector2f max);
 
     void update(float dt) override;
@@ -80,6 +87,8 @@ private:
     sf::Vector2f m_dashOrigin{};
 
     std::unique_ptr<Weapon> m_weapon;
+
+    float m_echoStepTimer = 0.f; // remaining duration of Echo Step speed boost
 
     const InputState& m_input;
     const ActionMap&  m_actions;

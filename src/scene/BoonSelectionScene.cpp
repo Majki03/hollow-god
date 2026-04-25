@@ -13,6 +13,7 @@
 #include <SFML/Window/Event.hpp>
 
 #include <algorithm>
+#include <numeric>
 #include <random>
 
 namespace hollow {
@@ -21,10 +22,11 @@ namespace {
     constexpr float kCardW    = 220.f;
     constexpr float kCardH    = 280.f;
     constexpr float kCardGap  =  30.f;
-    constexpr float kCardY    = 200.f;  // top edge of cards
-    constexpr float kBarH     =   8.f;  // school colour stripe at top of card
+    constexpr float kCardY    = 200.f;
+    constexpr float kBarH     =   8.f;
     constexpr unsigned kNameSize    = 16;
     constexpr unsigned kTaglineSize = 12;
+    constexpr unsigned kBadgeSize   = 10;
 
     sf::Color schoolColor(BoonSchool s)
     {
@@ -38,7 +40,8 @@ namespace {
     }
 }
 
-BoonSelectionScene::BoonSelectionScene(SceneContext& ctx, Player& player)
+BoonSelectionScene::BoonSelectionScene(SceneContext& ctx, Player& player,
+                                       int wave, bool forceRare)
     : Scene(ctx)
     , m_player(player)
     , m_overlay(sf::Vector2f(1280.f, 720.f))
@@ -55,26 +58,52 @@ BoonSelectionScene::BoonSelectionScene(SceneContext& ctx, Player& player)
     m_subheader.setOrigin(sb.left + sb.width * 0.5f, 0.f);
     m_subheader.setPosition(640.f, 170.f);
 
-    // Pick three distinct random boons from the loaded pool.
-    // m_choices holds raw pointers into ctx.data.boons which is stable at runtime.
-    const auto& pool = ctx.data.boons;
-    std::vector<int> indices(pool.size());
-    std::iota(indices.begin(), indices.end(), 0);
-
-    std::mt19937 rng(std::random_device{}());
-    std::shuffle(indices.begin(), indices.end(), rng);
-
-    for (int i = 0; i < kCardCount; ++i) {
-        m_choices[i] = &pool[indices[i]];
-    }
-
-    // Try to load the dev font; cards degrade gracefully without it.
     try {
         ctx.fonts.get(HG_DEV_FONT);
         m_fontLoaded = true;
     } catch (...) {}
 
+    drawBoons(wave, forceRare);
     buildCards();
+}
+
+void BoonSelectionScene::drawBoons(int wave, bool forceRare)
+{
+    const auto& pool = m_ctx.data.boons;
+
+    // Split pool by tier.
+    std::vector<int> commons, rares;
+    for (int i = 0; i < static_cast<int>(pool.size()); ++i) {
+        if (pool[i].tier == BoonTier::Rare) rares.push_back(i);
+        else                                commons.push_back(i);
+    }
+
+    std::mt19937 rng(std::random_device{}());
+    std::shuffle(commons.begin(), commons.end(), rng);
+    std::shuffle(rares.begin(),  rares.end(),  rng);
+
+    // Wave multiples of 5, or after accepting a curse, guarantee at least one Rare.
+    const bool mustHaveRare = forceRare || (wave % 5 == 0);
+    std::bernoulli_distribution rareDist(0.15);
+
+    for (int i = 0; i < kCardCount; ++i) {
+        // Slot 0 is force-picked Rare when mustHaveRare is set.
+        const bool wantRare = (mustHaveRare && i == 0) || rareDist(rng);
+
+        if (wantRare && !rares.empty()) {
+            m_choices[i] = &pool[rares.back()];
+            rares.pop_back();
+        } else if (!commons.empty()) {
+            m_choices[i] = &pool[commons.back()];
+            commons.pop_back();
+        } else if (!rares.empty()) {
+            // Common pool exhausted — fall back to Rare.
+            m_choices[i] = &pool[rares.back()];
+            rares.pop_back();
+        } else {
+            m_choices[i] = &pool[0]; // degenerate: pool is empty
+        }
+    }
 }
 
 void BoonSelectionScene::buildCards()
@@ -89,11 +118,12 @@ void BoonSelectionScene::buildCards()
 
         c.bg.setPosition({ x, kCardY });
         c.bg.setSize({ kCardW, kCardH });
-        c.bg.setFillColor(sf::Color(20, 14, 28));
+        c.bg.setFillColor(boon.tier == BoonTier::Rare
+            ? sf::Color(28, 18, 12)   // warmer dark for Rares
+            : sf::Color(20, 14, 28));
 
         c.border.setPosition({ x - 2.f, kCardY - 2.f });
         c.border.setSize({ kCardW + 4.f, kCardH + 4.f });
-        // border color set each frame in render()
 
         c.schoolBar.setPosition({ x, kCardY });
         c.schoolBar.setSize({ kCardW, kBarH });
@@ -113,6 +143,17 @@ void BoonSelectionScene::buildCards()
             c.tagline.setCharacterSize(kTaglineSize);
             c.tagline.setFillColor(sf::Color(160, 148, 130));
             c.tagline.setPosition({ x + 12.f, kCardY + kBarH + 42.f });
+
+            c.tierBadge.setFont(font);
+            c.tierBadge.setCharacterSize(kBadgeSize);
+            if (boon.tier == BoonTier::Rare) {
+                c.tierBadge.setString("RARE");
+                c.tierBadge.setFillColor(sf::Color(210, 165, 40));
+            } else {
+                c.tierBadge.setString("COMMON");
+                c.tierBadge.setFillColor(sf::Color(90, 80, 70));
+            }
+            c.tierBadge.setPosition({ x + 12.f, kCardY + kBarH + 66.f });
         }
     }
 }
@@ -121,12 +162,10 @@ void BoonSelectionScene::update(float dt)
 {
     (void)dt;
 
-    if (m_ctx.actions.justPressed(Action::MoveLeft)) {
+    if (m_ctx.actions.justPressed(Action::MoveLeft))
         m_selected = (m_selected + kCardCount - 1) % kCardCount;
-    }
-    if (m_ctx.actions.justPressed(Action::MoveRight)) {
+    if (m_ctx.actions.justPressed(Action::MoveRight))
         m_selected = (m_selected + 1) % kCardCount;
-    }
     if (m_ctx.actions.justPressed(Action::Confirm) ||
         m_ctx.actions.justPressed(Action::Attack)) {
         m_ctx.audio.play(Sfx::BoonPick);
@@ -143,7 +182,7 @@ void BoonSelectionScene::applyBoon(const Boon& boon)
     switch (boon.effect) {
     case BoonEffect::MaxHpUp:
         s.maxHp += v;
-        m_player.healBy(v);   // also top up HP by the same amount
+        m_player.healBy(v);
         break;
     case BoonEffect::HealNow:
         m_player.healBy(v);
@@ -172,6 +211,29 @@ void BoonSelectionScene::applyBoon(const Boon& boon)
     case BoonEffect::DashDistUp:
         s.dashDist += boon.value;
         break;
+    // Rare effects — set a flag so GameScene/Player pick up the active logic.
+    case BoonEffect::VoidRush:
+        s.hasVoidRush    = true;
+        s.voidRushDamage = v;
+        break;
+    case BoonEffect::DeathMark:
+        s.hasDeathMark = true;
+        break;
+    case BoonEffect::SpectralVolley:
+        s.hasSpectralVolley = true;
+        break;
+    case BoonEffect::BloodPact:
+        // Costs 5 max HP (and 5 current HP), gains value swing damage.
+        s.maxHp = std::max(10, s.maxHp - 5);
+        m_player.loseHpDirect(5);
+        s.swingDamage += v;
+        break;
+    case BoonEffect::EchoStep:
+        s.hasEchoStep = true;
+        break;
+    case BoonEffect::SoulDrain:
+        s.hasSoulDrain = true;
+        break;
     }
 }
 
@@ -196,6 +258,7 @@ void BoonSelectionScene::render(sf::RenderTarget& target)
         if (m_fontLoaded) {
             target.draw(c.name);
             target.draw(c.tagline);
+            target.draw(c.tierBadge);
         }
     }
 }

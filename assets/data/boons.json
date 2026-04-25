@@ -1,19 +1,26 @@
 [
-    { "name": "Iron Flesh",    "tagline": "Max HP +25",              "school": "Vigor",     "effect": "MaxHpUp",         "value": 25.0 },
-    { "name": "Mending",       "tagline": "Restore 20 HP now",       "school": "Vigor",     "effect": "HealNow",         "value": 20.0 },
-    { "name": "Stone Veil",    "tagline": "Reduce damage taken by 3","school": "Vigor",     "effect": "DmgReduceUp",     "value":  3.0 },
+    { "name": "Iron Flesh",    "tagline": "Max HP +25",               "school": "Vigor",     "effect": "MaxHpUp",        "value": 25.0, "tier": "Common" },
+    { "name": "Mending",       "tagline": "Restore 20 HP now",        "school": "Vigor",     "effect": "HealNow",        "value": 20.0, "tier": "Common" },
+    { "name": "Stone Veil",    "tagline": "Reduce damage taken by 3", "school": "Vigor",     "effect": "DmgReduceUp",    "value":  3.0, "tier": "Common" },
 
-    { "name": "Shattered Edge","tagline": "Swing damage +6",         "school": "Wrath",     "effect": "SwingDmgUp",      "value":  6.0 },
-    { "name": "Heavy Strike",  "tagline": "Knockback force +120",    "school": "Wrath",     "effect": "KnockbackUp",     "value": 120.0},
-    { "name": "Bloodlust",     "tagline": "Kill heals 5 HP",         "school": "Wrath",     "effect": "OnKillHealUp",    "value":  5.0 },
+    { "name": "Shattered Edge","tagline": "Swing damage +6",          "school": "Wrath",     "effect": "SwingDmgUp",     "value":  6.0, "tier": "Common" },
+    { "name": "Heavy Strike",  "tagline": "Knockback force +120",     "school": "Wrath",     "effect": "KnockbackUp",    "value": 120.0,"tier": "Common" },
+    { "name": "Bloodlust",     "tagline": "Kill heals 5 HP",          "school": "Wrath",     "effect": "OnKillHealUp",   "value":  5.0, "tier": "Common" },
 
-    { "name": "Fleet Step",    "tagline": "Move speed +40",          "school": "Swiftness", "effect": "MoveSpeedUp",     "value": 40.0 },
-    { "name": "Ghost Step",    "tagline": "I-frames +0.30 s",        "school": "Swiftness", "effect": "IFrameUp",        "value":  0.30},
-    { "name": "Surge",         "tagline": "Move speed +25",          "school": "Swiftness", "effect": "MoveSpeedUp",     "value": 25.0 },
-    { "name": "Blink",         "tagline": "Dash distance +60",       "school": "Swiftness", "effect": "DashDistUp",      "value": 60.0 },
-    { "name": "Quick Step",    "tagline": "Dash cooldown -0.20 s",   "school": "Swiftness", "effect": "DashCooldownDown","value":  0.20},
+    { "name": "Fleet Step",    "tagline": "Move speed +40",           "school": "Swiftness", "effect": "MoveSpeedUp",    "value": 40.0, "tier": "Common" },
+    { "name": "Ghost Step",    "tagline": "I-frames +0.30 s",         "school": "Swiftness", "effect": "IFrameUp",       "value":  0.30,"tier": "Common" },
+    { "name": "Surge",         "tagline": "Move speed +25",           "school": "Swiftness", "effect": "MoveSpeedUp",    "value": 25.0, "tier": "Common" },
+    { "name": "Blink",         "tagline": "Dash distance +60",        "school": "Swiftness", "effect": "DashDistUp",     "value": 60.0, "tier": "Common" },
+    { "name": "Quick Step",    "tagline": "Dash cooldown −0.20 s",    "school": "Swiftness", "effect": "DashCooldownDown","value": 0.20, "tier": "Common" },
 
-    { "name": "Void Echo",     "tagline": "Kill heals 8 HP",         "school": "Dominion",  "effect": "OnKillHealUp",    "value":  8.0 },
-    { "name": "Fracture",      "tagline": "Swing damage +4",         "school": "Dominion",  "effect": "SwingDmgUp",      "value":  4.0 },
-    { "name": "Spectral Hide", "tagline": "Reduce damage taken by 2","school": "Dominion",  "effect": "DmgReduceUp",     "value":  2.0 }
+    { "name": "Void Echo",     "tagline": "Kill heals 8 HP",          "school": "Dominion",  "effect": "OnKillHealUp",   "value":  8.0, "tier": "Common" },
+    { "name": "Fracture",      "tagline": "Swing damage +4",          "school": "Dominion",  "effect": "SwingDmgUp",     "value":  4.0, "tier": "Common" },
+    { "name": "Spectral Hide", "tagline": "Reduce damage taken by 2", "school": "Dominion",  "effect": "DmgReduceUp",    "value":  2.0, "tier": "Common" },
+
+    { "name": "Void Rush",       "tagline": "Dash explodes for 15 dmg nearby",    "school": "Dominion",  "effect": "VoidRush",       "value": 15.0, "tier": "Rare" },
+    { "name": "Death Mark",      "tagline": "Third hit on same foe: 3x damage",   "school": "Wrath",     "effect": "DeathMark",      "value":  0.0, "tier": "Rare" },
+    { "name": "Spectral Volley", "tagline": "Every 5th swing fires a spirit bolt", "school": "Dominion",  "effect": "SpectralVolley", "value":  0.0, "tier": "Rare" },
+    { "name": "Blood Pact",      "tagline": "-5 max HP   +15 swing damage",       "school": "Wrath",     "effect": "BloodPact",      "value": 15.0, "tier": "Rare" },
+    { "name": "Echo Step",       "tagline": "Each dash: +50% speed for 2 s",      "school": "Swiftness", "effect": "EchoStep",       "value":  0.0, "tier": "Rare" },
+    { "name": "Soul Drain",      "tagline": "Kills restore 2 s of i-frames",      "school": "Vigor",     "effect": "SoulDrain",      "value":  0.0, "tier": "Rare" }
 ]

@@ -71,8 +71,9 @@ void Player::confine(sf::Vector2f mn, sf::Vector2f mx)
 
 void Player::update(float dt)
 {
-    if (m_iframeTimer  > 0.f) m_iframeTimer  -= dt;
-    if (m_dashCooldown > 0.f) m_dashCooldown -= dt;
+    if (m_iframeTimer   > 0.f) m_iframeTimer   -= dt;
+    if (m_dashCooldown  > 0.f) m_dashCooldown  -= dt;
+    if (m_echoStepTimer > 0.f) m_echoStepTimer -= dt;
 
     {
         const bool visible = m_iframeTimer <= 0.f ||
@@ -94,7 +95,9 @@ void Player::update(float dt)
         wish.y *= inv;
     }
 
-    const sf::Vector2f desired = wish * m_stats.moveSpeed;
+    const float speed = (m_stats.hasEchoStep && m_echoStepTimer > 0.f)
+                        ? m_stats.moveSpeed * 1.5f : m_stats.moveSpeed;
+    const sf::Vector2f desired = wish * speed;
     const sf::Vector2f delta   = desired - m_velocity;
     const float        step    = (wishLen2 > 0.f ? kAccel : kDrag) * dt;
     const float        dMag2   = delta.x * delta.x + delta.y * delta.y;
@@ -125,6 +128,7 @@ void Player::update(float dt)
         m_dashCooldown    = m_stats.dashCooldown;
         m_iframeTimer     = std::max(m_iframeTimer, 0.20f);
         m_dashedThisFrame = true;
+        if (m_stats.hasEchoStep) m_echoStepTimer = 2.f;
         m_body.setPosition(m_position);
     }
 

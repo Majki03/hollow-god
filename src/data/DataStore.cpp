@@ -30,6 +30,11 @@ BoonSchool parseSchool(const std::string& s)
     throw std::runtime_error("unknown boon school: " + s);
 }
 
+BoonTier parseTier(const std::string& s)
+{
+    return (s == "Rare") ? BoonTier::Rare : BoonTier::Common;
+}
+
 BoonEffect parseEffect(const std::string& s)
 {
     if (s == "MaxHpUp")          return BoonEffect::MaxHpUp;
@@ -42,6 +47,12 @@ BoonEffect parseEffect(const std::string& s)
     if (s == "OnKillHealUp")     return BoonEffect::OnKillHealUp;
     if (s == "DashCooldownDown") return BoonEffect::DashCooldownDown;
     if (s == "DashDistUp")       return BoonEffect::DashDistUp;
+    if (s == "VoidRush")         return BoonEffect::VoidRush;
+    if (s == "DeathMark")        return BoonEffect::DeathMark;
+    if (s == "SpectralVolley")   return BoonEffect::SpectralVolley;
+    if (s == "BloodPact")        return BoonEffect::BloodPact;
+    if (s == "EchoStep")         return BoonEffect::EchoStep;
+    if (s == "SoulDrain")        return BoonEffect::SoulDrain;
     throw std::runtime_error("unknown boon effect: " + s);
 }
 
@@ -118,6 +129,7 @@ void loadBoons(DataStore& store, const std::string& dir)
             b.school  = parseSchool(entry.at("school").get<std::string>());
             b.effect  = parseEffect(entry.at("effect").get<std::string>());
             b.value   = entry.at("value").get<float>();
+            b.tier    = parseTier(entry.value("tier", std::string("Common")));
             store.boons.push_back(std::move(b));
         }
     } catch (const std::exception& e) {

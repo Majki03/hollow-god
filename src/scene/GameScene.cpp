@@ -219,11 +219,28 @@ void GameScene::update(float dt)
     if (m_player->swingId() != m_prevSwingId) {
         m_prevSwingId = m_player->swingId();
         m_ctx.audio.play(Sfx::Swing);
+
+        // Spectral Volley: every 5th swing auto-fires a spirit projectile.
+        if (m_player->stats().hasSpectralVolley) {
+            ++m_spectralCount;
+            if (m_spectralCount >= 5) {
+                m_spectralCount = 0;
+                const float angle = m_player->aimAngle();
+                const sf::Vector2f dir{ std::cos(angle), std::sin(angle) };
+                auto proj = std::make_unique<Projectile>(
+                    m_player->position(), dir, 500.f,
+                    m_player->stats().swingDamage, false,
+                    sf::Color(160, 80, 220), 6.f);
+                m_playerProjectiles.push_back(proj.get());
+                m_world.add(std::move(proj));
+            }
+        }
     }
 
-    // Emit dash trail particles at the origin of a dash.
+    // Dash trail particles + Void Rush AoE.
     if (m_player->consumeDashEvent()) {
         m_ctx.audio.play(Sfx::Dash);
+        if (m_player->stats().hasVoidRush) applyVoidRush();
         const sf::Color trailColor(200, 195, 230);
         constexpr int kTrailCount = 8;
         std::uniform_real_distribution<float> rAngle(0.f, 6.2832f);
@@ -281,6 +298,13 @@ void GameScene::update(float dt)
         return;
     }
 
+    // Null Death Mark target while entities are still alive in memory (before
+    // pruneDead destroys them — after that the raw pointer would be dangling).
+    if (m_deathMarkTarget && !m_deathMarkTarget->alive()) {
+        m_deathMarkTarget = nullptr;
+        m_deathMarkCount  = 0;
+    }
+
     std::erase_if(m_enemies,          [](const EnemyBase*  e) { return !e->alive(); });
     std::erase_if(m_archers,          [](const Archer*     a) { return !a->alive(); });
     std::erase_if(m_projectiles,      [](const Projectile* p) { return !p->alive(); });
@@ -299,6 +323,34 @@ void GameScene::update(float dt)
         } else {
             spawnWave();
             m_ctx.audio.play(Sfx::WaveStart);
+        }
+    }
+}
+
+void GameScene::handleKill(EnemyBase* e)
+{
+    ++m_kills;
+    m_hitStop = std::max(m_hitStop, 0.055f);
+    emitDeathParticles(e->position(), e->normalColor());
+    m_ctx.audio.play(Sfx::EnemyDeath);
+    if (m_player->stats().onKillHeal > 0)
+        m_player->healBy(m_player->stats().onKillHeal);
+    if (m_player->stats().hasSoulDrain)
+        m_player->extendIframes(2.0f);
+}
+
+void GameScene::applyVoidRush()
+{
+    constexpr float kRadius = 40.f;
+    const sf::Vector2f origin = m_player->dashOrigin();
+    const int dmg = m_player->stats().voidRushDamage;
+
+    for (EnemyBase* e : m_enemies) {
+        if (!e->alive()) continue;
+        const sf::Vector2f d = e->position() - origin;
+        if (d.x * d.x + d.y * d.y <= kRadius * kRadius) {
+            e->damage(dmg);
+            if (!e->alive()) handleKill(e);
         }
     }
 }
@@ -340,7 +392,7 @@ void GameScene::resolveCombat()
     for (EnemyBase* e : m_enemies) {
         if (!e->alive() || e->lastHitSwing() == swing) continue;
         if (physics::circlesOverlap(center, radius, e->position(), e->radius())) {
-            const int dmg = static_cast<int>(
+            int dmg = static_cast<int>(
                 m_player->stats().swingDamage * m_player->weaponDamageMult());
             e->damage(dmg);
             e->setLastHitSwing(swing);
@@ -352,16 +404,22 @@ void GameScene::resolveCombat()
                 e->applyImpulse(dir * m_player->stats().knockback);
             }
 
-            if (!e->alive()) {
-                ++m_kills;
-                m_hitStop = std::max(m_hitStop, 0.055f);
-                emitDeathParticles(e->position(), e->normalColor());
-                m_ctx.audio.play(Sfx::EnemyDeath);
-                if (m_player->stats().onKillHeal > 0)
-                    m_player->healBy(m_player->stats().onKillHeal);
-            } else {
-                m_ctx.audio.play(Sfx::Hit);
+            // Death Mark: 3rd consecutive hit on the same target deals 3× total.
+            if (m_player->stats().hasDeathMark && e->alive()) {
+                if (e == m_deathMarkTarget) {
+                    ++m_deathMarkCount;
+                } else {
+                    m_deathMarkTarget = e;
+                    m_deathMarkCount  = 1;
+                }
+                if (m_deathMarkCount >= 3) {
+                    e->damage(dmg * 2); // +2× extra so total = 3×
+                    m_deathMarkCount = 0;
+                }
             }
+
+            if (!e->alive()) handleKill(e);
+            else             m_ctx.audio.play(Sfx::Hit);
         }
     }
 }
@@ -423,18 +481,9 @@ void GameScene::resolvePlayerProjectiles()
                     e->applyImpulse(dir * m_player->stats().knockback);
                 }
 
-                if (!e->alive()) {
-                    ++m_kills;
-                    m_hitStop = std::max(m_hitStop, 0.055f);
-                    emitDeathParticles(e->position(), e->normalColor());
-                    m_ctx.audio.play(Sfx::EnemyDeath);
-                    if (m_player->stats().onKillHeal > 0)
-                        m_player->healBy(m_player->stats().onKillHeal);
-                } else {
-                    m_ctx.audio.play(Sfx::Hit);
-                }
+                if (!e->alive()) handleKill(e);
+                else             m_ctx.audio.play(Sfx::Hit);
 
-                // Non-piercing projectiles die on first hit.
                 if (!p->pierces()) {
                     p->kill();
                     break;
