@@ -38,6 +38,7 @@ add_executable(hollow_god
     src/Application.cpp
     src/audio/AudioSystem.cpp
     src/data/DataStore.cpp
+    src/render/PostProcess.cpp
     src/entity/Archer.cpp
     src/entity/Brute.cpp
     src/entity/Charger.cpp
@@ -66,6 +67,7 @@ target_include_directories(hollow_god PRIVATE src)
 target_compile_definitions(hollow_god PRIVATE
     HG_DEV_FONT="${sfml_SOURCE_DIR}/examples/shader/resources/tuffy.ttf"
     HG_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/data"
+    HG_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders"
 )
 
 # SFML 2.6 headers trip -Wdeprecated-declarations on newer libc++
