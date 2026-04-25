@@ -12,31 +12,17 @@
 namespace hollow {
 
 namespace {
-    // These are fixed movement constants — not moddable by boons.
     constexpr float kAccel  = 1700.f;
     constexpr float kDrag   = 1300.f;
     constexpr float kRadius = 14.f;
 
-    constexpr float kSwingDuration = 0.30f;
-    constexpr float kHitboxStart   = 0.05f;
-    constexpr float kHitboxEnd     = 0.20f;
-    constexpr float kSwingReach    = 40.f;
-    constexpr float kSwingRadius   = 34.f;
-
-    constexpr float kRad2Deg  = 180.f / std::numbers::pi_v<float>;
-
-    // Swing arc geometry constants.
-    constexpr float kArcInner    = 20.f;  // start of ring (px from player)
-    constexpr float kArcOuter    = 66.f;  // end of ring
-    constexpr float kArcHalfDeg  = 52.f;  // ± half-span in degrees
-    constexpr int   kArcSegments = 18;
+    constexpr float kRad2Deg = 180.f / std::numbers::pi_v<float>;
 }
 
 Player::Player(sf::Vector2f startPosition, const InputState& input, const ActionMap& actions)
     : Entity(startPosition)
     , m_body(kRadius)
     , m_aimIndicator({ 22.f, 3.f })
-    , m_swingArc(sf::Triangles, static_cast<std::size_t>(kArcSegments * 6))
     , m_input(input)
     , m_actions(actions)
 {
@@ -51,22 +37,10 @@ Player::Player(sf::Vector2f startPosition, const InputState& input, const Action
     m_aimIndicator.setFillColor(sf::Color(200, 170, 80));
 }
 
-bool Player::hitboxActive() const
+void Player::setWeapon(std::unique_ptr<Weapon> w)
 {
-    return m_attackState == AttackState::Swinging
-        && m_attackTimer >= kHitboxStart
-        && m_attackTimer <= kHitboxEnd;
+    m_weapon = std::move(w);
 }
-
-sf::Vector2f Player::hitboxPosition() const
-{
-    return m_position + sf::Vector2f{
-        std::cos(m_aimAngle) * kSwingReach,
-        std::sin(m_aimAngle) * kSwingReach,
-    };
-}
-
-float Player::hitboxRadius() const { return kSwingRadius; }
 
 bool Player::damage(int amount)
 {
@@ -138,7 +112,6 @@ void Player::update(float dt)
 
     m_dashedThisFrame = false;
 
-    // Dash — teleport in move direction (or aim direction if stationary).
     if (m_actions.justPressed(Action::Dash) && m_dashCooldown <= 0.f) {
         sf::Vector2f dashDir{};
         if (wishLen2 > 0.f) {
@@ -161,57 +134,16 @@ void Player::update(float dt)
     m_aimIndicator.setPosition(m_position);
     m_aimIndicator.setRotation(m_aimAngle * kRad2Deg);
 
-    if (m_attackState == AttackState::Idle &&
-        m_actions.justPressed(Action::Attack)) {
-        m_attackState = AttackState::Swinging;
-        m_attackTimer = 0.f;
-        ++m_swingId;
-    }
-
-    if (m_attackState == AttackState::Swinging) {
-        m_attackTimer += dt;
-
-        // Rebuild arc VertexArray with alpha based on swing progress.
-        {
-            const float progress = m_attackTimer / kSwingDuration; // 0→1
-            const float alpha    = std::max(0.f, 1.f - progress) * 200.f;
-            const sf::Color arcColor(240, 200, 120, static_cast<sf::Uint8>(alpha));
-
-            const float halfRad = kArcHalfDeg * (std::numbers::pi_v<float> / 180.f);
-            const float step    = (2.f * halfRad) / kArcSegments;
-
-            std::size_t vi = 0;
-            for (int s = 0; s < kArcSegments; ++s) {
-                const float a0 = m_aimAngle - halfRad + s * step;
-                const float a1 = a0 + step;
-                // Quad as two triangles: inner0, outer0, outer1 + inner0, outer1, inner1
-                const sf::Vector2f in0  = m_position + sf::Vector2f(std::cos(a0), std::sin(a0)) * kArcInner;
-                const sf::Vector2f out0 = m_position + sf::Vector2f(std::cos(a0), std::sin(a0)) * kArcOuter;
-                const sf::Vector2f in1  = m_position + sf::Vector2f(std::cos(a1), std::sin(a1)) * kArcInner;
-                const sf::Vector2f out1 = m_position + sf::Vector2f(std::cos(a1), std::sin(a1)) * kArcOuter;
-
-                m_swingArc[vi++] = { in0,  arcColor };
-                m_swingArc[vi++] = { out0, arcColor };
-                m_swingArc[vi++] = { out1, arcColor };
-                m_swingArc[vi++] = { in0,  arcColor };
-                m_swingArc[vi++] = { out1, arcColor };
-                m_swingArc[vi++] = { in1,  arcColor };
-            }
-        }
-
-        if (m_attackTimer >= kSwingDuration) {
-            m_attackState = AttackState::Idle;
-            m_attackTimer = 0.f;
-        }
-    }
+    if (m_weapon)
+        m_weapon->update(dt, m_position, m_aimAngle, m_actions);
 }
 
 void Player::render(sf::RenderTarget& target) const
 {
     target.draw(m_aimIndicator);
     target.draw(m_body);
-    if (m_attackState == AttackState::Swinging)
-        target.draw(m_swingArc);
+    if (m_weapon)
+        m_weapon->render(target);
 }
 
 } // namespace hollow

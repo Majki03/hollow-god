@@ -6,16 +6,24 @@
 
 namespace hollow {
 
-Projectile::Projectile(sf::Vector2f origin, sf::Vector2f direction, float speed)
+Projectile::Projectile(sf::Vector2f origin, sf::Vector2f direction,
+                       float speed, int damage, bool pierces,
+                       sf::Color color, float radius)
     : Entity(origin)
-    , m_body(kRadius)
+    , m_body(radius)
     , m_dir(direction)
     , m_speed(speed)
+    , m_radius(radius)
+    , m_damage(damage)
+    , m_pierces(pierces)
 {
-    m_body.setOrigin(kRadius, kRadius);
+    m_body.setOrigin(radius, radius);
     m_body.setPosition(origin);
-    m_body.setFillColor(sf::Color(240, 160, 60));
-    m_body.setOutlineColor(sf::Color(180, 100, 20));
+    m_body.setFillColor(color);
+    m_body.setOutlineColor(sf::Color(
+        static_cast<sf::Uint8>(color.r * 0.7f),
+        static_cast<sf::Uint8>(color.g * 0.7f),
+        static_cast<sf::Uint8>(color.b * 0.7f)));
     m_body.setOutlineThickness(1.5f);
 }
 

@@ -3,6 +3,7 @@
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "data/DataStore.h"
+#include "entity/weapon/SwordWeapon.h"
 #include "render/PostProcess.h"
 #include "entity/Archer.h"
 #include "entity/Brute.h"
@@ -39,17 +40,26 @@ namespace {
     const sf::Vector2f kRoomSize   = { 1040.f, 560.f };
 }
 
-GameScene::GameScene(SceneContext& ctx)
+GameScene::GameScene(SceneContext& ctx, WeaponType weaponType)
     : Scene(ctx)
     , m_room(kRoomOrigin, kRoomSize)
     , m_hud(ctx)
     , m_rng(std::random_device{}())
 {
+    m_weaponType = weaponType;
+
     auto player = std::make_unique<Player>(
         sf::Vector2f(640.f, 360.f), ctx.input, ctx.actions);
     m_player = player.get();
-    m_world.add(std::move(player));
 
+    // Weapon selection sets initial swingDamage / knockback so boons accumulate
+    // on top of the weapon's base values rather than the PlayerStats defaults.
+    const auto& s = ctx.data.weapons.sword;  // only sword exists this commit
+    player->setWeapon(std::make_unique<SwordWeapon>(s));
+    player->mutableStats().swingDamage = s.baseDamage;
+    player->mutableStats().knockback   = s.knockback;
+
+    m_world.add(std::move(player));
     spawnWave();
 }
 
@@ -219,9 +229,19 @@ void GameScene::update(float dt)
         }
     }
 
+    // Poll weapon for player-fired projectiles (bow shots, thrown spear).
+    if (auto shot = m_player->pendingWeaponProjectile()) {
+        auto proj = std::make_unique<Projectile>(
+            m_player->position(), shot->direction, shot->speed,
+            shot->damage, shot->pierces);
+        m_playerProjectiles.push_back(proj.get());
+        m_world.add(std::move(proj));
+    }
+
     resolveCombat();
     resolveEnemyContact();
     resolveProjectiles();
+    resolvePlayerProjectiles();
 
     // Trigger shake if the player just took a hit.
     if (!m_player->alive() || m_player->hp() < m_prevHp) {
@@ -239,9 +259,10 @@ void GameScene::update(float dt)
         return;
     }
 
-    std::erase_if(m_enemies,     [](const EnemyBase*  e) { return !e->alive(); });
-    std::erase_if(m_archers,     [](const Archer*     a) { return !a->alive(); });
-    std::erase_if(m_projectiles, [](const Projectile* p) { return !p->alive(); });
+    std::erase_if(m_enemies,          [](const EnemyBase*  e) { return !e->alive(); });
+    std::erase_if(m_archers,          [](const Archer*     a) { return !a->alive(); });
+    std::erase_if(m_projectiles,      [](const Projectile* p) { return !p->alive(); });
+    std::erase_if(m_playerProjectiles,[](const Projectile* p) { return !p->alive(); });
     m_world.pruneDead();
 
     if (m_enemies.empty() && !m_boonPending) {
@@ -297,7 +318,9 @@ void GameScene::resolveCombat()
     for (EnemyBase* e : m_enemies) {
         if (!e->alive() || e->lastHitSwing() == swing) continue;
         if (physics::circlesOverlap(center, radius, e->position(), e->radius())) {
-            e->damage(m_player->stats().swingDamage);
+            const int dmg = static_cast<int>(
+                m_player->stats().swingDamage * m_player->weaponDamageMult());
+            e->damage(dmg);
             e->setLastHitSwing(swing);
 
             sf::Vector2f dir = e->position() - center;
@@ -357,6 +380,44 @@ void GameScene::resolveProjectiles()
             if (m_player->damage(Player::kContactDamage))
                 m_ctx.audio.play(Sfx::PlayerHit);
             p->kill();
+        }
+    }
+}
+
+void GameScene::resolvePlayerProjectiles()
+{
+    for (Projectile* p : m_playerProjectiles) {
+        if (!p->alive()) continue;
+        for (EnemyBase* e : m_enemies) {
+            if (!e->alive()) continue;
+            if (physics::circlesOverlap(p->position(), p->radius(),
+                                        e->position(),  e->radius())) {
+                e->damage(p->damage());
+
+                sf::Vector2f dir = e->position() - p->position();
+                const float  d2  = dir.x * dir.x + dir.y * dir.y;
+                if (d2 > 0.f) {
+                    dir *= 1.f / std::sqrt(d2);
+                    e->applyImpulse(dir * m_player->stats().knockback);
+                }
+
+                if (!e->alive()) {
+                    ++m_kills;
+                    m_hitStop = std::max(m_hitStop, 0.055f);
+                    emitDeathParticles(e->position(), e->normalColor());
+                    m_ctx.audio.play(Sfx::EnemyDeath);
+                    if (m_player->stats().onKillHeal > 0)
+                        m_player->healBy(m_player->stats().onKillHeal);
+                } else {
+                    m_ctx.audio.play(Sfx::Hit);
+                }
+
+                // Non-piercing projectiles die on first hit.
+                if (!p->pierces()) {
+                    p->kill();
+                    break;
+                }
+            }
         }
     }
 }

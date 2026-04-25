@@ -2,10 +2,13 @@
 
 #include "entity/Entity.h"
 #include "entity/PlayerStats.h"
+#include "entity/weapon/Weapon.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/VertexArray.hpp>
+
+#include <memory>
+#include <optional>
 
 namespace hollow {
 
@@ -16,32 +19,39 @@ class Player : public Entity {
 public:
     Player(sf::Vector2f startPosition, const InputState& input, const ActionMap& actions);
 
-    float aimAngle() const { return m_aimAngle; } // radians
+    // Takes ownership of a weapon; replaces any previously equipped weapon.
+    void setWeapon(std::unique_ptr<Weapon> w);
 
-    // Swing hitbox: a circle at an offset from the player. Only "active" for a
-    // short window inside the swing — lets us animate a windup/recovery later
-    // without the hitbox being alive for the whole animation.
-    bool         hitboxActive() const;
-    sf::Vector2f hitboxPosition() const;
-    float        hitboxRadius() const;
+    float aimAngle() const { return m_aimAngle; }
 
-    // Monotonically-increasing ID for each swing. Victims record which swing
-    // hit them so the hitbox can't double-tap the same target in one swing.
-    int swingId() const { return m_swingId; }
+    // Hitbox queries delegate to the equipped weapon.
+    bool         hitboxActive()   const { return m_weapon && m_weapon->hitboxActive(); }
+    sf::Vector2f hitboxPosition() const { return m_weapon ? m_weapon->hitboxPosition() : m_position; }
+    float        hitboxRadius()   const { return m_weapon ? m_weapon->hitboxRadius() : 0.f; }
 
-    // Damage the enemy deals to the player on body contact.
+    // Increments each new attack — used by GameScene to detect attack edges for SFX.
+    int swingId() const { return m_weapon ? m_weapon->attackId() : 0; }
+
+    // Damage multiplier for this frame's hitbox (> 1 during heavy / alt-fire).
+    float weaponDamageMult() const { return m_weapon ? m_weapon->damageMult() : 1.f; }
+
+    // Non-null when the weapon fired a projectile this frame. Consuming it
+    // resets the weapon's internal state, so call at most once per frame.
+    std::optional<Weapon::PendingShot> pendingWeaponProjectile()
+        { return m_weapon ? m_weapon->pendingProjectile() : std::nullopt; }
+
+    // Damage the enemy deals to the player on body / projectile contact.
     static constexpr int kContactDamage = 10;
 
     int  hp()    const { return m_hp; }
     int  maxHp() const { return m_stats.maxHp; }
 
-    // Dash cooldown queries (used by HUD).
     float dashCooldownRemaining() const { return m_dashCooldown; }
     float dashCooldownMax()       const { return m_stats.dashCooldown; }
 
     // True for exactly one frame after a dash fires; read and consumed by GameScene.
     bool consumeDashEvent() { if (!m_dashedThisFrame) return false; m_dashedThisFrame = false; return true; }
-    sf::Vector2f dashOrigin() const { return m_dashOrigin; } // position before last dash
+    sf::Vector2f dashOrigin() const { return m_dashOrigin; }
 
     const PlayerStats& stats()        const { return m_stats; }
     PlayerStats&       mutableStats()       { return m_stats; }
@@ -56,24 +66,20 @@ public:
     void render(sf::RenderTarget& target) const override;
 
 private:
-    enum class AttackState { Idle, Swinging };
-
     PlayerStats        m_stats;
     sf::CircleShape    m_body;
     sf::RectangleShape m_aimIndicator;
-    sf::VertexArray    m_swingArc;   // ring-sector drawn during attack
 
     sf::Vector2f m_velocity{};
-    float        m_aimAngle    = 0.f;
-    AttackState  m_attackState = AttackState::Idle;
-    float        m_attackTimer = 0.f;
-    int          m_swingId     = 0;
+    float        m_aimAngle = 0.f;
 
     int          m_hp             = 0;
     float        m_iframeTimer   = 0.f;
     float        m_dashCooldown  = 0.f;
     bool         m_dashedThisFrame = false;
     sf::Vector2f m_dashOrigin{};
+
+    std::unique_ptr<Weapon> m_weapon;
 
     const InputState& m_input;
     const ActionMap&  m_actions;

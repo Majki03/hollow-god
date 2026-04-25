@@ -126,6 +126,53 @@ void loadBoons(DataStore& store, const std::string& dir)
     }
 }
 
+void loadWeapons(DataStore& store, const std::string& dir)
+{
+    try {
+        auto j = openJson(dir + "/weapons.json");
+
+        auto& sw = store.weapons.sword;
+        if (j.contains("sword")) {
+            const auto& s = j["sword"];
+            sw.swingDuration = s.value("swingDuration", sw.swingDuration);
+            sw.hitboxRadius  = s.value("hitboxRadius",  sw.hitboxRadius);
+            sw.hitboxReach   = s.value("hitboxReach",   sw.hitboxReach);
+            sw.baseDamage    = s.value("damage",         sw.baseDamage);
+            sw.knockback     = s.value("knockback",      sw.knockback);
+            if (s.contains("heavySlam")) {
+                const auto& h = s["heavySlam"];
+                sw.heavyRadiusMult = h.value("radiusMult",  sw.heavyRadiusMult);
+                sw.heavyDamageMult = h.value("damageMult",  sw.heavyDamageMult);
+                sw.heavyChargeTime = h.value("chargeTime",  sw.heavyChargeTime);
+            }
+        }
+
+        auto& bw = store.weapons.bow;
+        if (j.contains("bow")) {
+            const auto& b = j["bow"];
+            bw.projectileSpeed  = b.value("projectileSpeed",  bw.projectileSpeed);
+            bw.cooldown         = b.value("cooldown",         bw.cooldown);
+            bw.chargeTime       = b.value("chargeTime",       bw.chargeTime);
+            bw.chargeDamageMult = b.value("chargeDamageMult", bw.chargeDamageMult);
+            bw.baseDamage       = b.value("damage",            bw.baseDamage);
+        }
+
+        auto& sp = store.weapons.spear;
+        if (j.contains("spear")) {
+            const auto& s = j["spear"];
+            sp.hitboxLength    = s.value("hitboxLength",    sp.hitboxLength);
+            sp.hitboxWidth     = s.value("hitboxWidth",     sp.hitboxWidth);
+            sp.thrustDuration  = s.value("thrustDuration",  sp.thrustDuration);
+            sp.throwSpeed      = s.value("throwSpeed",      sp.throwSpeed);
+            sp.unarmedDuration = s.value("unarmedDuration", sp.unarmedDuration);
+            sp.baseDamage      = s.value("damage",           sp.baseDamage);
+            sp.knockback       = s.value("knockback",        sp.knockback);
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[DataStore] weapons.json: " << e.what() << " — using defaults\n";
+    }
+}
+
 } // namespace
 
 void DataStore::load(const std::string& dataDir)
@@ -133,6 +180,7 @@ void DataStore::load(const std::string& dataDir)
     loadEnemies(*this, dataDir);
     loadWaves(*this, dataDir);
     loadBoons(*this, dataDir);
+    loadWeapons(*this, dataDir);
 }
 
 } // namespace hollow

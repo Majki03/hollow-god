@@ -1,0 +1,30 @@
+{
+  "sword": {
+    "swingDuration": 0.30,
+    "hitboxRadius": 55.0,
+    "hitboxReach": 40.0,
+    "damage": 20,
+    "knockback": 280.0,
+    "heavySlam": {
+      "radiusMult": 1.8,
+      "damageMult": 2.0,
+      "chargeTime": 0.4
+    }
+  },
+  "bow": {
+    "projectileSpeed": 620.0,
+    "damage": 15,
+    "cooldown": 0.6,
+    "chargeTime": 1.2,
+    "chargeDamageMult": 1.5
+  },
+  "spear": {
+    "hitboxLength": 80.0,
+    "hitboxWidth": 30.0,
+    "thrustDuration": 0.25,
+    "damage": 18,
+    "knockback": 340.0,
+    "throwSpeed": 550.0,
+    "unarmedDuration": 1.5
+  }
+}

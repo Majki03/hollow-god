@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entity/weapon/Weapon.h"
 #include "hud/Hud.h"
 #include "scene/Scene.h"
 #include "world/Room.h"
@@ -22,7 +23,7 @@ class Projectile;
 
 class GameScene : public Scene {
 public:
-    explicit GameScene(SceneContext& ctx);
+    explicit GameScene(SceneContext& ctx, WeaponType weaponType = WeaponType::Sword);
 
     void handleEvent(const sf::Event& event) override;
     void update(float dt) override;
@@ -47,6 +48,7 @@ private:
     void resolveEnemyContact();
     void resolveProjectiles();
     void separateEnemies();
+    void resolvePlayerProjectiles();
     void emitDeathParticles(sf::Vector2f pos, sf::Color color);
 
     void onEnter() override;
@@ -57,8 +59,10 @@ private:
     Player*                 m_player = nullptr;
     std::vector<EnemyBase*>  m_enemies;
     std::vector<Archer*>     m_archers;     // subset of m_enemies that can fire
-    std::vector<Projectile*> m_projectiles;
+    std::vector<Projectile*> m_projectiles;        // enemy shots
+    std::vector<Projectile*> m_playerProjectiles;  // player weapon shots
     std::vector<Particle>    m_particles;
+    WeaponType              m_weaponType;
     int                     m_wave        = 0;
     int                     m_kills       = 0;
     bool                    m_boonPending = false;
