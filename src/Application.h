@@ -3,6 +3,7 @@
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "data/DataStore.h"
+#include "render/PostProcess.h"
 #include "input/ActionMap.h"
 #include "input/InputState.h"
 #include "resources/ResourceCache.h"
@@ -33,6 +34,8 @@ private:
     FontCache        m_fonts;
     AudioSystem      m_audio;
     DataStore        m_data;
+    PostProcess      m_post{1280, 720};
+    float            m_time = 0.f;
     SceneContext     m_ctx;
 };
 

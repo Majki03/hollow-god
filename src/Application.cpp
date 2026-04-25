@@ -18,7 +18,7 @@ namespace {
 Application::Application()
     : m_window(sf::VideoMode(1280, 720), "The Hollow God")
     , m_actions(m_input)
-    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts, "", m_audio, m_data }
+    , m_ctx{ m_window, m_input, m_actions, m_scenes, m_textures, m_fonts, "", m_audio, m_data, m_post }
 {
     m_window.setVerticalSyncEnabled(true);
 
@@ -72,13 +72,16 @@ void Application::processEvents()
 
 void Application::update(float dt)
 {
+    m_time += dt;
     m_scenes.update(dt);
 }
 
 void Application::render()
 {
-    m_window.clear(sf::Color(10, 8, 14));
-    m_scenes.render(m_window);
+    auto& target = m_post.sceneTarget(m_window);
+    target.clear(sf::Color(10, 8, 14));
+    m_scenes.render(target);
+    m_post.composite(m_window, m_time);
     m_window.display();
 }
 

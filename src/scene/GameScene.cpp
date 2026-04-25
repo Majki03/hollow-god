@@ -3,6 +3,7 @@
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "data/DataStore.h"
+#include "render/PostProcess.h"
 #include "entity/Archer.h"
 #include "entity/Brute.h"
 #include "entity/Charger.h"
@@ -228,6 +229,7 @@ void GameScene::update(float dt)
     }
     m_prevHp = m_player->hp();
     m_shakeTrauma = std::max(0.f, m_shakeTrauma - 2.2f * dt);
+    m_ctx.post.setTrauma(m_shakeTrauma);
 
     m_hud.update(*m_player, m_wave, m_kills);
 

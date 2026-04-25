@@ -11,6 +11,7 @@ namespace hollow {
 class AudioSystem;
 class InputState;
 class ActionMap;
+class PostProcess;
 class SceneStack;
 struct DataStore;
 
@@ -26,8 +27,9 @@ struct SceneContext {
     // Key into fonts cache. Empty string means no font was loaded; scenes must
     // guard all sf::Text usage behind !fontKey.empty().
     std::string  fontKey;
-    AudioSystem& audio;
-    DataStore&   data;
+    AudioSystem&  audio;
+    DataStore&    data;
+    PostProcess&  post;
 };
 
 } // namespace hollow
