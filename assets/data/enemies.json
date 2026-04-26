@@ -24,5 +24,18 @@
         "moveSpeed":     65.0,
         "preferredDist": 290.0,
         "fireInterval":  2.2
+    },
+    "boss": {
+        "radius":         50.0,
+        "maxHp":          300,
+        "moveSpeed":      55.0,
+        "slamRadius":     130.0,
+        "slamDamage":     30,
+        "slamWindup":     1.60,
+        "slamCooldown":   4.00,
+        "volleyCount":    8,
+        "volleyDamage":   10,
+        "volleySpeed":    280.0,
+        "volleyCooldown": 5.00
     }
 }

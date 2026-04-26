@@ -43,6 +43,7 @@ add_executable(hollow_god
     src/entity/weapon/SpearWeapon.cpp
     src/entity/weapon/SwordWeapon.cpp
     src/entity/Archer.cpp
+    src/entity/BossEnemy.cpp
     src/entity/Brute.cpp
     src/entity/Charger.cpp
     src/entity/EnemyBase.cpp

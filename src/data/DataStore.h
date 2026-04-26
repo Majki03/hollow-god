@@ -73,6 +73,22 @@ struct SpearStats {
     float knockback       = 340.f;
 };
 
+struct BossStats {
+    float radius         = 50.f;
+    int   maxHp          = 300;
+    float moveSpeed      = 55.f;
+    // Slam attack — AoE centred on the boss position
+    float slamRadius     = 130.f;
+    int   slamDamage     = 30;
+    float slamWindup     = 1.60f;
+    float slamCooldown   = 4.00f;
+    // Volley attack — ring of projectiles
+    int   volleyCount    = 8;
+    int   volleyDamage   = 10;
+    float volleySpeed    = 280.f;
+    float volleyCooldown = 5.00f;
+};
+
 struct WaveLayout {
     int grunts   = 0;
     int chargers = 0;
@@ -86,6 +102,7 @@ struct DataStore {
         ChargerStats charger;
         BruteStats   brute;
         ArcherStats  archer;
+        BossStats    boss;
     } enemies;
 
     struct {

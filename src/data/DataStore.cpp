@@ -86,6 +86,21 @@ void loadEnemies(DataStore& store, const std::string& dir)
         ar.moveSpeed     = j["archer"].value("moveSpeed",     ar.moveSpeed);
         ar.preferredDist = j["archer"].value("preferredDist", ar.preferredDist);
         ar.fireInterval  = j["archer"].value("fireInterval",  ar.fireInterval);
+
+        if (j.contains("boss")) {
+            auto& bo = store.enemies.boss;
+            bo.radius         = j["boss"].value("radius",         bo.radius);
+            bo.maxHp          = j["boss"].value("maxHp",          bo.maxHp);
+            bo.moveSpeed      = j["boss"].value("moveSpeed",      bo.moveSpeed);
+            bo.slamRadius     = j["boss"].value("slamRadius",     bo.slamRadius);
+            bo.slamDamage     = j["boss"].value("slamDamage",     bo.slamDamage);
+            bo.slamWindup     = j["boss"].value("slamWindup",     bo.slamWindup);
+            bo.slamCooldown   = j["boss"].value("slamCooldown",   bo.slamCooldown);
+            bo.volleyCount    = j["boss"].value("volleyCount",    bo.volleyCount);
+            bo.volleyDamage   = j["boss"].value("volleyDamage",   bo.volleyDamage);
+            bo.volleySpeed    = j["boss"].value("volleySpeed",    bo.volleySpeed);
+            bo.volleyCooldown = j["boss"].value("volleyCooldown", bo.volleyCooldown);
+        }
     } catch (const std::exception& e) {
         std::cerr << "[DataStore] enemies.json: " << e.what() << " — using defaults\n";
     }
