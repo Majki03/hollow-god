@@ -3,6 +3,7 @@
 #include "audio/AudioSystem.h"
 #include "core/SceneContext.h"
 #include "data/DataStore.h"
+#include "entity/BossEnemy.h"
 #include "entity/weapon/BowWeapon.h"
 #include "entity/weapon/SpearWeapon.h"
 #include "entity/weapon/SwordWeapon.h"
@@ -119,9 +120,37 @@ void GameScene::spawnArcher(sf::Vector2f pos, float hpScale)
     m_world.add(std::move(e));
 }
 
+void GameScene::spawnBoss()
+{
+    // Place boss near the centre of the room, away from the player.
+    const sf::Vector2f centre = m_room.topLeft() + m_room.size() * 0.5f;
+    const sf::Vector2f toPlayer = m_player->position() - centre;
+    const float        dist2    = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y;
+    const float        dist     = (dist2 > 0.f) ? std::sqrt(dist2) : 0.f;
+    const sf::Vector2f spawnPos = (dist > 0.f)
+        ? centre - toPlayer * (std::min(dist, 180.f) / dist)
+        : centre;
+
+    auto boss = std::make_unique<BossEnemy>(spawnPos, m_ctx.data.enemies.boss);
+    m_boss = boss.get();
+    m_enemies.push_back(boss.get());
+    m_world.add(std::move(boss));
+    m_bossSlamHit = false;
+
+    // Dramatic entrance shake.
+    m_shakeTrauma = std::min(m_shakeTrauma + 0.45f, 1.f);
+    emitDeathParticles(spawnPos, sf::Color(130, 60, 180));
+}
+
 void GameScene::spawnWave()
 {
     ++m_wave;
+
+    // Boss waves: wave 5 (mid-boss) and the victory wave (final boss).
+    if (m_wave == 5 || m_wave == m_ctx.data.waves.victoryWave) {
+        spawnBoss();
+        return;
+    }
 
     // Wave composition read from data/waves.json; waves beyond the table repeat
     // the last row, same as before — the data just lives in a file now.
@@ -288,6 +317,7 @@ void GameScene::update(float dt)
 
     resolveCombat();
     resolveEnemyContact();
+    resolveBossAttacks();
     resolveProjectiles();
     resolvePlayerProjectiles();
 
@@ -307,12 +337,13 @@ void GameScene::update(float dt)
         return;
     }
 
-    // Null Death Mark target while entities are still alive in memory (before
-    // pruneDead destroys them — after that the raw pointer would be dangling).
+    // Null raw pointers before pruneDead() destroys the entities in memory.
     if (m_deathMarkTarget && !m_deathMarkTarget->alive()) {
         m_deathMarkTarget = nullptr;
         m_deathMarkCount  = 0;
     }
+    if (m_boss && !m_boss->alive())
+        m_boss = nullptr;
 
     std::erase_if(m_enemies,          [](const EnemyBase*  e) { return !e->alive(); });
     std::erase_if(m_archers,          [](const Archer*     a) { return !a->alive(); });
@@ -334,6 +365,38 @@ void GameScene::update(float dt)
             m_boonPending = true;
             m_ctx.scenes.push(
                 std::make_unique<BoonSelectionScene>(m_ctx, *m_player, m_wave, m_rareGuaranteed));
+        }
+    }
+}
+
+void GameScene::resolveBossAttacks()
+{
+    if (!m_boss || !m_boss->alive()) return;
+
+    // ── Slam AoE — deal damage once per activation window ────────────────────
+    if (m_boss->slamActive()) {
+        if (!m_bossSlamHit) {
+            m_bossSlamHit = true;
+            const sf::Vector2f d = m_player->position() - m_boss->position();
+            const float dist2    = d.x * d.x + d.y * d.y;
+            const float r        = m_boss->slamRadius();
+            if (dist2 < r * r && m_player->alive()) {
+                m_player->damage(m_boss->slamDamage());
+                m_shakeTrauma = std::min(m_shakeTrauma + 0.55f, 1.f);
+            }
+        }
+    } else {
+        m_bossSlamHit = false;  // reset so next activation can fire
+    }
+
+    // ── Volley — spawn ring of projectiles when boss fires ────────────────────
+    if (m_boss->hasVolley()) {
+        const BossStats& bs = m_ctx.data.enemies.boss;
+        for (const sf::Vector2f& dir : m_boss->takeVolley()) {
+            auto proj = std::make_unique<Projectile>(
+                m_boss->position(), dir, bs.volleySpeed, bs.volleyDamage);
+            m_projectiles.push_back(proj.get());
+            m_world.add(std::move(proj));
         }
     }
 }

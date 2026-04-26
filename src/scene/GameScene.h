@@ -17,6 +17,7 @@
 namespace hollow {
 
 class Archer;
+class BossEnemy;
 class EnemyBase;
 class Player;
 class Projectile;
@@ -42,12 +43,14 @@ private:
     void spawnCharger(sf::Vector2f position, float hpScale);
     void spawnBrute  (sf::Vector2f position, float hpScale);
     void spawnArcher (sf::Vector2f position, float hpScale);
+    void spawnBoss   ();
 
     void spawnWave();
     void resolveCombat();
     void resolveEnemyContact();
     void resolveProjectiles();
     void resolvePlayerProjectiles();
+    void resolveBossAttacks();      // boss slam AoE + volley projectile spawning
     void separateEnemies();
     void applyVoidRush();          // Rare boon: AoE on dash origin
     void emitDeathParticles(sf::Vector2f pos, sf::Color color);
@@ -74,6 +77,9 @@ private:
     float                   m_hitStop       = 0.f;
     int                     m_prevHp        = 0;
     int                     m_prevSwingId   = 0;
+    // Boss state
+    BossEnemy*              m_boss         = nullptr;
+    bool                    m_bossSlamHit  = false;  // prevent double-damage per slam
     // Rare boon active state
     int                     m_spectralCount = 0;  // swings since last Spectral Volley
     EnemyBase*              m_deathMarkTarget  = nullptr;
