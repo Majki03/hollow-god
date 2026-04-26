@@ -329,7 +329,7 @@ void GameScene::update(float dt)
     m_shakeTrauma = std::max(0.f, m_shakeTrauma - 2.2f * dt);
     m_ctx.post.setTrauma(m_shakeTrauma);
 
-    m_hud.update(*m_player, m_wave, m_kills);
+    m_hud.update(*m_player, m_wave, m_kills, m_boss != nullptr);
 
     if (!m_player->alive()) {
         m_ctx.audio.play(Sfx::PlayerDeath);
@@ -404,8 +404,19 @@ void GameScene::resolveBossAttacks()
 void GameScene::handleKill(EnemyBase* e)
 {
     ++m_kills;
-    m_hitStop = std::max(m_hitStop, 0.055f);
-    emitDeathParticles(e->position(), e->normalColor());
+
+    const bool isBoss = (e == m_boss);
+    if (isBoss) {
+        // Dramatic boss death — triple particle burst + extended hit-stop + big shake.
+        for (int i = 0; i < 3; ++i)
+            emitDeathParticles(e->position(), e->normalColor());
+        emitDeathParticles(e->position(), sf::Color(210, 160, 255)); // bright purple burst
+        m_hitStop     = std::max(m_hitStop,     0.22f);
+        m_shakeTrauma = std::min(m_shakeTrauma + 0.80f, 1.f);
+    } else {
+        m_hitStop = std::max(m_hitStop, 0.055f);
+        emitDeathParticles(e->position(), e->normalColor());
+    }
     m_ctx.audio.play(Sfx::EnemyDeath);
     if (m_player->stats().onKillHeal > 0)
         m_player->healBy(m_player->stats().onKillHeal);

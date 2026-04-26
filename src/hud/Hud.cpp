@@ -21,6 +21,7 @@ Hud::Hud(const SceneContext& ctx)
     , m_dashLabel(makeText(ctx, "Dash", 11, sf::Color(100, 170, 180)))
     , m_waveLabel(makeText(ctx, "", 16, sf::Color(160, 140, 110)))
     , m_killLabel(makeText(ctx, "", 13, sf::Color(140, 160, 130)))
+    , m_bossLabel(makeText(ctx, "THE HOLLOW HERALD", 22, sf::Color(200, 40, 40)))
 {
     const float barY  = kWinH - kPadY - kBarH;
     const float dashY = barY - kDashH - 18.f;  // above HP bar, below hp label
@@ -51,9 +52,14 @@ Hud::Hud(const SceneContext& ctx)
     // Wave + kill labels anchored top-right.
     m_waveLabel.setPosition({ kWinW - kPadX - 120.f, kPadY });
     m_killLabel.setPosition({ kWinW - kPadX - 120.f, kPadY + 24.f });
+
+    // Boss warning banner — centred at the top edge.
+    const auto bb = m_bossLabel.getLocalBounds();
+    m_bossLabel.setOrigin(bb.left + bb.width * 0.5f, 0.f);
+    m_bossLabel.setPosition(kWinW * 0.5f, kPadY);
 }
 
-void Hud::update(const Player& player, int wave, int kills)
+void Hud::update(const Player& player, int wave, int kills, bool isBossWave)
 {
     // HP bar.
     const float ratio = static_cast<float>(player.hp()) /
@@ -73,6 +79,7 @@ void Hud::update(const Player& player, int wave, int kills)
     // Wave / kill.
     m_waveLabel.setString("Wave  " + std::to_string(wave));
     m_killLabel.setString("Kills  " + std::to_string(kills));
+    m_isBossWave = isBossWave;
 }
 
 void Hud::render(sf::RenderTarget& target) const
@@ -85,6 +92,8 @@ void Hud::render(sf::RenderTarget& target) const
     target.draw(m_dashLabel);
     target.draw(m_waveLabel);
     target.draw(m_killLabel);
+    if (m_isBossWave)
+        target.draw(m_bossLabel);
 }
 
 } // namespace hollow

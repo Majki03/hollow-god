@@ -15,7 +15,8 @@ class Hud {
 public:
     explicit Hud(const SceneContext& ctx);
 
-    void update(const Player& player, int wave, int kills);
+    // isBossWave = true shows a centred "HOLLOW HERALD" warning banner.
+    void update(const Player& player, int wave, int kills, bool isBossWave = false);
     void render(sf::RenderTarget& target) const;
 
 private:
@@ -27,6 +28,8 @@ private:
     sf::Text           m_dashLabel;
     sf::Text           m_waveLabel;
     sf::Text           m_killLabel;
+    sf::Text           m_bossLabel;   // shown only on boss waves
+    bool               m_isBossWave = false;
 
     static constexpr float kBarW  = 200.f;
     static constexpr float kBarH  =  14.f;
